@@ -40,6 +40,7 @@ const TodoManager = (() => {
     const removeTodoFromProject = (todoObj) => {
         let relProject = getProjectFromTodo(todoObj);
         relProject.todoList.splice(todoObj.index, 1);
+        ProjectManager.updateTodoIndices(relProject.index);
     };
 
     const editTodo = (todoObj) => {
@@ -57,7 +58,7 @@ const ProjectManager = (() => {
 
     //factory function for projects - there will be many
     //default project
-    const createProject = (name = 'Default') => {
+    const createProject = (name = 'Personal') => {
         let todoList = [];
         let index;
 
@@ -67,6 +68,13 @@ const ProjectManager = (() => {
     const assignIndex = (proj) => {
         let id = projects.indexOf(proj);
         proj.index = id;
+    };
+
+    const updateTodoIndices = (projIndex) => {
+        let proj = getProject(projIndex);
+        proj.todoList.forEach((todo, index) => {
+            todo.index = index;
+        });
     };
 
     const addProject = (proj) => {
@@ -98,31 +106,145 @@ const ProjectManager = (() => {
         getProject,
         editProject,
         removeProject,
+        updateTodoIndices,
     };
 })();
 
 //one UIManager, so it is a module / IIFE
-const UIManager = (() => {})();
+const UIManager = (() => {
+    //create default project
+    let newProj = ProjectManager.createProject();
+    ProjectManager.addProject(newProj);
+
+    //populate projects
+    const populateProjectList = () => {
+        let lowerNav = document.querySelector('ul.lower-nav');
+
+        let projects = ProjectManager.getAllProjects();
+
+        for (let i = 0; i < projects.length; i++) {
+            let listElement = document.createElement('li');
+            listElement.setAttribute('data-index', i);
+            let btnElement = document.createElement('button');
+            listElement.appendChild(btnElement);
+            btnElement.innerText = projects[i].name;
+            lowerNav.appendChild(listElement);
+        }
+    };
+
+    populateProjectList();
+
+    const addTaskBtn = document.querySelector('.add-task > button');
+    const addTaskArea = document.querySelector('main .edit-area');
+    const exitAddTaskArea = document.querySelector('button.exit');
+    const addTaskForm = document.querySelector('.edit-area form');
+    const theList = document.querySelector('div.the-list');
+    const itemCont = document.querySelector('ul.ctn');
+
+    const clearTodos = () => {
+        while (itemCont.childElementCount != 1) {
+            itemCont.lastChild.remove();
+        }
+    };
+
+    const removeTodo = (target) => {
+        let todoIndex =
+            target.parentElement.parentElement.getAttribute('data-index');
+        //make a copy...
+        let todos = getTodos().slice(0);
+        let todo = todos.filter((item) => item.index == todoIndex);
+        TodoManager.removeTodoFromProject(todo[0]);
+        populateTodos();
+    };
+
+    const getTodos = () => {
+        let projectId = theList.getAttribute('data-projectId');
+        return ProjectManager.getProject(projectId).todoList;
+    };
+
+    const populateTodos = () => {
+        const listItem = document.querySelector('li.list-item');
+        let todos = getTodos().slice(0);
+        clearTodos();
+
+        todos.forEach((item, index) => {
+            let clone = listItem.cloneNode(true);
+            itemCont.appendChild(clone);
+            clone.style.display = 'grid';
+            clone.setAttribute('data-index', index);
+            document.querySelector(
+                `li[data-index='${index}'] .text-ctn .title`,
+            ).innerText = item.title;
+            document.querySelector(
+                `li[data-index='${index}'] .text-ctn .desc`,
+            ).innerText = item.description;
+            document.querySelector(
+                `li[data-index='${index}'] .end .priority`,
+            ).innerText = item.priority;
+            document.querySelector(
+                `li[data-index='${index}'] .end .date`,
+            ).innerText = item.dueDate;
+        });
+
+        //add event listener for delete buttons
+        let delBtn = document.querySelectorAll('button.delete');
+        delBtn.forEach((btn) =>
+            btn.addEventListener('click', (e) => {
+                removeTodo(e.target);
+            }),
+        );
+
+        console.log(getTodos());
+    };
+
+    populateTodos();
+
+    const openAddTaskArea = () => {
+        addTaskArea.style.visibility = 'initial';
+        addTaskBtn.parentElement.style.display = 'none';
+    };
+
+    const closeAddTaskArea = () => {
+        addTaskArea.style.visibility = 'hidden';
+        addTaskBtn.parentElement.style.display = 'flex';
+    };
+
+    const submitTask = () => {
+        const formData = new FormData(addTaskForm);
+        let valueArray = [];
+        for (const value of formData.values()) {
+            valueArray.push(value);
+        }
+        let newTodo = TodoManager.createTodo(
+            valueArray[0],
+            valueArray[1],
+            valueArray[2],
+            valueArray[3],
+            +theList.getAttribute('data-projectId'),
+        );
+        TodoManager.addTodoToProject(newTodo);
+        populateTodos();
+        closeAddTaskArea();
+    };
+
+    //add a task
+    addTaskBtn.addEventListener('click', () => {
+        openAddTaskArea();
+    });
+
+    exitAddTaskArea.addEventListener('click', () => {
+        closeAddTaskArea();
+    });
+
+    addTaskForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        submitTask();
+    });
+
+    //delete a task
+})();
 
 //tests
-let newProj = ProjectManager.createProject();
-let secondProj = ProjectManager.createProject('Shopping List');
-ProjectManager.addProject(newProj);
-ProjectManager.addProject(secondProj);
-
-let newTodo = TodoManager.createTodo(
-    'lalala',
-    'wow will this work?',
-    new Date(),
-    'important',
-);
-console.log(newTodo);
-
-TodoManager.addTodoToProject(newTodo);
-
-let projects = ProjectManager.getAllProjects();
-
-console.log(projects);
 
 //create a new task
 //user presses button

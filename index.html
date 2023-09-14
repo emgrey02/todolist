@@ -33,55 +33,31 @@
                         <button>+</button>
                     </div>
                 </li>
-                <li>
-                    <button>Personal</button>
-                </li>
-                <li>
-                    <button>School</button>
-                </li>
-                <li>
-                    <button>Fitness</button>
-                </li>
                 <!-- new projects go here -->
             </ul>
         </div>
     </nav>
     <main>
-        <div>
+        <div data-projectId="0" class="the-list">
             <div class="title-ctn">
-                <h2>Title</h2>
+                <h2>Personal</h2>
                 <span></span>
             </div>
             <div class="todos">
-                <ul>
-                    <li>
-                        <div>
-                            <button>[]</button>
-                            <div class="text-ctn">
-                                <p class="title">eat breakfast</p>
-                                <p class="desc">make sure it is healthy</p>
-                            </div>
-                        </div>
-                        <div class="end">
-                            <div class="priority">*</div>
-                            <div class="date">jun 12</div>
-                            <button class="edit">edit</button>
-                            <button class="delete">X</button>
-                        </div>
-                    </li>
-                    <li>
+                <ul class="ctn">
+                    <li class="list-item" style="display: none">
                         <div>
                             <button class="checkbox">[]</button>
                             <div class="text-ctn">
-                                <p class="title">run away</p>
-                                <p class="desc">and make it fast</p>
+                                <p class="title"></p>
+                                <p class="desc"></p>
                             </div>
                         </div>
                         <div class="end">
-                            <div class="priority">***</div>
-                            <div class="date">aug 04</div>
-                            <button>edit</button>
-                            <button>X</button>
+                            <div class="priority"></div>
+                            <div class="date"></div>
+                            <button class="edit">edit</button>
+                            <button class="delete">X</button>
                         </div>
                     </li>
                 </ul>
@@ -96,7 +72,10 @@
                 <form>
                     <div class="text-ctn">
                         <input aria-label='task title' type="text" id="edit-title" name="title" />
-                        <textarea aria-label="task description"></textarea>
+                        <div class="grow-wrap">
+                            <textarea onInput="this.parentNode.dataset.replicatedValue = this.value"
+                                name="task description" aria-label="task description"></textarea>
+                        </div>
                     </div>
                     <div class="settings">
                         <input type="date" id="due-date" aria-label="due date" name="due date" />
@@ -106,10 +85,10 @@
                             <option value="high">high</option>
                         </select>
                     </div>
-                    <div class="add-task">
+                    <div class="add-task-btn">
                         <button>Add Task</button>
                     </div>
-                    <button class="exit">exit</button>
+                    <button type="button" class="exit">exit</button>
                 </form>
             </div>
         </div>

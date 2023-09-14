@@ -70,11 +70,22 @@ nav .lists-title {
 }
 
 main {
-  padding-inline: 5em;
+  padding-inline: max(2vw, 2em);
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto;
+  grid-template: "list ." "edit .";
+  height: -moz-min-content;
+  height: min-content;
   gap: 3em;
+  row-gap: 0.5em;
   padding-block-start: 3em;
+}
+main .the-list {
+  grid-area: list;
+}
+main .edit-area {
+  grid-area: edit;
 }
 main .todos ul {
   display: grid;
@@ -123,21 +134,49 @@ main .edit-area {
   height: fit-content;
   padding: 1em;
   position: relative;
+  visibility: hidden;
 }
 main .edit-area form {
   display: grid;
-  grid-template-columns: auto 0.5fr;
-  grid-template-rows: 2fr 1fr;
+  grid-template-columns: 2fr 0.5fr;
+  grid-template-rows: auto auto;
+}
+main .edit-area form input,
+main .edit-area form select {
+  font-family: inherit;
+  font-size: inherit;
 }
 main .edit-area form .text-ctn {
   display: flex;
   flex-direction: column;
 }
+main .edit-area form .text-ctn #edit-title {
+  padding: 0.5em 0.75em;
+}
+main .edit-area form .text-ctn .grow-wrap {
+  display: grid;
+}
+main .edit-area form .text-ctn .grow-wrap::after {
+  content: attr(data-replicated-value) " ";
+  white-space: pre-wrap;
+  visibility: hidden;
+}
+main .edit-area form .text-ctn .grow-wrap > textarea {
+  resize: none;
+  overflow: hidden;
+}
+main .edit-area form .text-ctn .grow-wrap > textarea, main .edit-area form .text-ctn .grow-wrap.grow-wrap::after {
+  border: 1px solid black;
+  padding: 0.5em 0.75em;
+  font: inherit;
+  line-height: 1.3;
+  grid-area: 1/1/2/2;
+}
 main .edit-area form .settings {
   grid-column: 1/2;
   align-self: end;
 }
-main .edit-area form .add-task {
+main .edit-area form .add-task-btn {
   grid-column: 2/3;
   justify-self: end;
   align-self: end;

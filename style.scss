@@ -83,11 +83,25 @@ nav {
 }
 
 main {
-    padding-inline: 5em;
+    padding-inline: max(2vw, 2em);
     display: grid;
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    grid-template:
+        "list ."
+        "edit .";
+    height: min-content;
     gap: 3em;
+    row-gap: .5em;
     padding-block-start: 3em;
+
+    .the-list {
+        grid-area: list;
+    }
+
+    .edit-area {
+        grid-area: edit;
+    }
 
     .todos {
 
@@ -141,6 +155,7 @@ main {
         align-items: center;
         padding-inline-start: .5em;
         padding-block-start: 1em;
+        // display: none;
     }
 
     .edit-area {
@@ -148,15 +163,51 @@ main {
         height: fit-content;
         padding: 1em;
         position: relative;
+        visibility: hidden;
 
         form {
             display: grid;
-            grid-template-columns: auto .5fr;
-            grid-template-rows: 2fr 1fr;
+            grid-template-columns: 2fr .5fr;
+            grid-template-rows: auto auto;
+
+            input,
+            select {
+                font-family: inherit;
+                font-size: inherit;
+            }
 
             .text-ctn {
                 display: flex;
                 flex-direction: column;
+
+                #edit-title {
+                    padding: .5em .75em;
+                }
+
+                .grow-wrap {
+                    display: grid;
+
+                    &::after {
+                        content: attr(data-replicated-value) " ";
+                        white-space: pre-wrap;
+                        visibility: hidden;
+                    }
+
+                    &>textarea {
+                        resize: none;
+                        overflow: hidden;
+                    }
+
+                    &>textarea,
+                    &.grow-wrap::after {
+                        border: 1px solid black;
+                        padding: .5em .75em;
+                        font: inherit;
+                        line-height: 1.3;
+                        grid-area: 1 / 1 / 2 / 2;
+                    }
+                }
+
             }
 
             .settings {
@@ -164,7 +215,7 @@ main {
                 align-self: end;
             }
 
-            .add-task {
+            .add-task-btn {
                 grid-column: 2 / 3;
                 justify-self: end;
                 align-self: end;
