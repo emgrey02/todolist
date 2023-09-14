@@ -30,6 +30,12 @@ ul {
     padding: 0;
 }
 
+input {
+    font-size: inherit;
+    font-family: inherit;
+    padding: .2em .5em;
+}
+
 button {
     font-size: inherit;
     font-family: inherit;
@@ -65,6 +71,27 @@ nav {
         .lower-nav {
             button {
                 width: 100%;
+            }
+        }
+
+        .new-proj {
+            padding-block: 1em;
+
+            form {
+                display: flex;
+                flex-direction: column;
+                gap: .5em;
+            }
+
+            div.input-ctn {
+                display: flex;
+                flex-direction: column;
+                gap: .3em;
+            }
+
+            div.btns {
+                display: flex;
+                justify-content: space-between
             }
         }
 

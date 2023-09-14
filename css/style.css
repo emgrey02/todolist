@@ -27,6 +27,12 @@ ul {
   padding: 0;
 }
 
+input {
+  font-size: inherit;
+  font-family: inherit;
+  padding: 0.2em 0.5em;
+}
+
 button {
   font-size: inherit;
   font-family: inherit;
@@ -58,6 +64,23 @@ nav .nav-list ul:first-child {
 nav .nav-list .upper-nav button,
 nav .nav-list .lower-nav button {
   width: 100%;
+}
+nav .nav-list .new-proj {
+  padding-block: 1em;
+}
+nav .nav-list .new-proj form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+nav .nav-list .new-proj div.input-ctn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+nav .nav-list .new-proj div.btns {
+  display: flex;
+  justify-content: space-between;
 }
 nav .nav-list .lists-title button {
   width: -moz-fit-content;
