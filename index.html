@@ -2,15 +2,89 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Todo List</title>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo List</title>
 </head>
 
 <body>
-  <div id="app"></div>
-  <script type="module" src="/main.js"></script>
+    <nav>
+        <div class="title-ctn">
+            <img src="" height="40px" width="40px">
+            <h1>Listz</h1>
+        </div>
+        <div class="nav-list">
+            <ul class="upper-nav">
+                <li>
+                    <button>All Todos</button>
+                </li>
+                <li>
+                    <button>Today</button>
+                </li>
+                <li>
+                    <button>Upcoming</button>
+                </li>
+            </ul>
+            <ul class="lower-nav">
+                <li>
+                    <div class="lists-title">
+                        <h3>Lists</h3>
+                        <button>+</button>
+                    </div>
+                </li>
+                <li>
+                    <button>Personal</button>
+                </li>
+                <li>
+                    <button>School</button>
+                </li>
+                <li>
+                    <button>Fitness</button>
+                </li>
+                <!-- new projects go here -->
+            </ul>
+        </div>
+    </nav>
+    <main>
+        <div class="title-ctn">
+            <h2>Title</h2>
+            <span></span>
+        </div>
+        <div class="todos">
+            <ul>
+                <li>
+                    <div>
+                        <button>[]</button>
+                        <p>eat breakfast</p>
+                    </div>
+                    <div>
+                        <div class="priority">*</div>
+                        <div class="date">jun 12</div>
+                        <button>edit</button>
+                        <button>X</button>
+                    </div>
+                </li>
+                <li>
+                    <div>
+                        <button class="checkbox">[]</button>
+                        <p class="task">run away</p>
+                    </div>
+                    <div>
+                        <div class="priority">***</div>
+                        <div class="date">aug 04</div>
+                        <button>edit</button>
+                        <button>X</button>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="add-task">
+            <button>+</button>
+            <p>Add Task</p>
+        </div>
+    </main>
+    <script type="module" src="/main.js"></script>
 </body>
 
 </html>
