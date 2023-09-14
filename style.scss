@@ -1,6 +1,7 @@
+// general
 :root {
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
+    line-height: .9;
     font-weight: 400;
 
     color-scheme: light dark;
@@ -32,12 +33,16 @@ ul {
 button {
     font-size: inherit;
     font-family: inherit;
-    padding-block: .5em;
-
     text-align: start;
     cursor: pointer;
 }
 
+p {
+    margin: 0;
+    padding: 0;
+}
+
+// main areas of page
 nav {
     background-color: grey;
     padding-inline: 1em;
@@ -46,6 +51,7 @@ nav {
         display: flex;
         align-items: center;
         gap: 1em;
+        padding-block-start: 1em;
     }
 
     .nav-list {
@@ -55,8 +61,17 @@ nav {
             margin-block-end: 2em;
         }
 
-        button {
-            width: 100%;
+        .upper-nav,
+        .lower-nav {
+            button {
+                width: 100%;
+            }
+        }
+
+        .lists-title {
+            button {
+                width: fit-content;
+            }
         }
     }
 
@@ -64,33 +79,59 @@ nav {
         display: flex;
         justify-content: space-between;
         align-items: center;
-
-        button {
-            width: fit-content;
-        }
     }
 }
 
 main {
-    padding-inline: 2em;
-    display: flex;
-    flex-direction: column;
-
+    padding-inline: 5em;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3em;
+    padding-block-start: 3em;
 
     .todos {
-        max-width: 60ch;
+
+        ul {
+            display: grid;
+            grid-template-rows: repeat(auto-fill, 1fr);
+            gap: 1em;
+            align-items: center;
+            padding-inline: .5em;
+        }
 
         li {
             width: 100%;
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: auto auto;
+            padding-block: .5em;
 
+            .end {
+                justify-self: end;
+            }
 
             div {
                 display: flex;
                 align-items: center;
                 gap: 1em;
+
+                .text-ctn {
+                    display: flex;
+                    flex-direction: column;
+                    gap: .2em;
+                    align-items: start;
+                }
+
+                .title {
+                    font-weight: bold;
+                }
             }
+
+
+            button {
+                display: grid;
+                place-items: center;
+            }
+
         }
     }
 
@@ -98,6 +139,44 @@ main {
         display: flex;
         gap: 1em;
         align-items: center;
+        padding-inline-start: .5em;
+        padding-block-start: 1em;
+    }
+
+    .edit-area {
+        background-color: lightgrey;
+        height: fit-content;
+        padding: 1em;
+        position: relative;
+
+        form {
+            display: grid;
+            grid-template-columns: auto .5fr;
+            grid-template-rows: 2fr 1fr;
+
+            .text-ctn {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .settings {
+                grid-column: 1 / 2;
+                align-self: end;
+            }
+
+            .add-task {
+                grid-column: 2 / 3;
+                justify-self: end;
+                align-self: end;
+            }
+
+            .exit {
+                position: absolute;
+                right: 0;
+                top: 0;
+                margin: .5em;
+            }
+        }
     }
 
 }

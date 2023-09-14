@@ -1,6 +1,6 @@
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  line-height: 0.9;
   font-weight: 400;
   color-scheme: light dark;
   color: rgba(32, 32, 32, 0.87);
@@ -30,9 +30,13 @@ ul {
 button {
   font-size: inherit;
   font-family: inherit;
-  padding-block: 0.5em;
   text-align: start;
   cursor: pointer;
+}
+
+p {
+  margin: 0;
+  padding: 0;
 }
 
 nav {
@@ -43,6 +47,7 @@ nav .title-ctn {
   display: flex;
   align-items: center;
   gap: 1em;
+  padding-block-start: 1em;
 }
 nav .nav-list {
   margin-block: 1em;
@@ -50,39 +55,96 @@ nav .nav-list {
 nav .nav-list ul:first-child {
   margin-block-end: 2em;
 }
-nav .nav-list button {
+nav .nav-list .upper-nav button,
+nav .nav-list .lower-nav button {
   width: 100%;
+}
+nav .nav-list .lists-title button {
+  width: -moz-fit-content;
+  width: fit-content;
 }
 nav .lists-title {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-nav .lists-title button {
-  width: -moz-fit-content;
-  width: fit-content;
-}
 
 main {
-  padding-inline: 2em;
-  display: flex;
-  flex-direction: column;
+  padding-inline: 5em;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3em;
+  padding-block-start: 3em;
 }
-main .todos {
-  max-width: 60ch;
+main .todos ul {
+  display: grid;
+  grid-template-rows: repeat(auto-fill, 1fr);
+  gap: 1em;
+  align-items: center;
+  padding-inline: 0.5em;
 }
 main .todos li {
   width: 100%;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto auto;
+  padding-block: 0.5em;
+}
+main .todos li .end {
+  justify-self: end;
 }
 main .todos li div {
   display: flex;
   align-items: center;
   gap: 1em;
 }
+main .todos li div .text-ctn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  align-items: start;
+}
+main .todos li div .title {
+  font-weight: bold;
+}
+main .todos li button {
+  display: grid;
+  place-items: center;
+}
 main .add-task {
   display: flex;
   gap: 1em;
   align-items: center;
+  padding-inline-start: 0.5em;
+  padding-block-start: 1em;
+}
+main .edit-area {
+  background-color: lightgrey;
+  height: -moz-fit-content;
+  height: fit-content;
+  padding: 1em;
+  position: relative;
+}
+main .edit-area form {
+  display: grid;
+  grid-template-columns: auto 0.5fr;
+  grid-template-rows: 2fr 1fr;
+}
+main .edit-area form .text-ctn {
+  display: flex;
+  flex-direction: column;
+}
+main .edit-area form .settings {
+  grid-column: 1/2;
+  align-self: end;
+}
+main .edit-area form .add-task {
+  grid-column: 2/3;
+  justify-self: end;
+  align-self: end;
+}
+main .edit-area form .exit {
+  position: absolute;
+  right: 0;
+  top: 0;
+  margin: 0.5em;
 }/*# sourceMappingURL=style.css.map */

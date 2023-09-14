@@ -47,41 +47,71 @@
         </div>
     </nav>
     <main>
-        <div class="title-ctn">
-            <h2>Title</h2>
-            <span></span>
+        <div>
+            <div class="title-ctn">
+                <h2>Title</h2>
+                <span></span>
+            </div>
+            <div class="todos">
+                <ul>
+                    <li>
+                        <div>
+                            <button>[]</button>
+                            <div class="text-ctn">
+                                <p class="title">eat breakfast</p>
+                                <p class="desc">make sure it is healthy</p>
+                            </div>
+                        </div>
+                        <div class="end">
+                            <div class="priority">*</div>
+                            <div class="date">jun 12</div>
+                            <button class="edit">edit</button>
+                            <button class="delete">X</button>
+                        </div>
+                    </li>
+                    <li>
+                        <div>
+                            <button class="checkbox">[]</button>
+                            <div class="text-ctn">
+                                <p class="title">run away</p>
+                                <p class="desc">and make it fast</p>
+                            </div>
+                        </div>
+                        <div class="end">
+                            <div class="priority">***</div>
+                            <div class="date">aug 04</div>
+                            <button>edit</button>
+                            <button>X</button>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="add-task">
+                <button>+</button>
+                <p>Add Task</p>
+            </div>
         </div>
-        <div class="todos">
-            <ul>
-                <li>
-                    <div>
-                        <button>[]</button>
-                        <p>eat breakfast</p>
+        <div class="edit-area">
+            <div>
+                <form>
+                    <div class="text-ctn">
+                        <input aria-label='task title' type="text" id="edit-title" name="title" />
+                        <textarea aria-label="task description"></textarea>
                     </div>
-                    <div>
-                        <div class="priority">*</div>
-                        <div class="date">jun 12</div>
-                        <button>edit</button>
-                        <button>X</button>
+                    <div class="settings">
+                        <input type="date" id="due-date" aria-label="due date" name="due date" />
+                        <select name="priority" id="priority" aria-label="priority">
+                            <option value="low">low</option>
+                            <option value="medium">medium</option>
+                            <option value="high">high</option>
+                        </select>
                     </div>
-                </li>
-                <li>
-                    <div>
-                        <button class="checkbox">[]</button>
-                        <p class="task">run away</p>
+                    <div class="add-task">
+                        <button>Add Task</button>
                     </div>
-                    <div>
-                        <div class="priority">***</div>
-                        <div class="date">aug 04</div>
-                        <button>edit</button>
-                        <button>X</button>
-                    </div>
-                </li>
-            </ul>
-        </div>
-        <div class="add-task">
-            <button>+</button>
-            <p>Add Task</p>
+                    <button class="exit">exit</button>
+                </form>
+            </div>
         </div>
     </main>
     <script type="module" src="/main.js"></script>
