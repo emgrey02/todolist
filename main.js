@@ -49,7 +49,17 @@ const TodoManager = (() => {
         relProject.todoList[taskIndex].index = taskIndex;
     };
 
-    return { createTodo, addTodoToProject, removeTodoFromProject, editTodo };
+    const toggleCompletion = (todoObj) => {
+        todoObj.completed = !todoObj.completed;
+    };
+
+    return {
+        createTodo,
+        addTodoToProject,
+        removeTodoFromProject,
+        editTodo,
+        toggleCompletion,
+    };
 })();
 
 //only one ProjectManager, so module / IIFE
@@ -172,7 +182,6 @@ const UIManager = (() => {
         //handle project buttons
         projBtns.forEach((btn) => {
             btn.addEventListener('click', (e) => {
-                console.log(btn, 'was clicked');
                 if (editProjMode) {
                     openAddProjectArea(e);
                     addHighlight(e.target.parentElement);
@@ -252,12 +261,14 @@ const UIManager = (() => {
         let todoIndex =
             target.parentElement.parentElement.getAttribute('data-index');
         // make a copy with slice - don't want to alter actual todos
-        let todos = getTodos().slice(0);
-        console.log(todos);
+        let todos = getTodos();
+
         // get the todo object from its index
-        let todo = todos.filter((item) => item.index == todoIndex);
+        let todoObj = todos[todoIndex];
+
         // remove it
-        TodoManager.removeTodoFromProject(todo[0]);
+        TodoManager.removeTodoFromProject(todoObj);
+
         // repopulate DOM
         populateTodos();
     };
@@ -269,6 +280,23 @@ const UIManager = (() => {
         editTaskMode = true;
         addHighlight(target.parentElement.parentElement);
         openAddTaskArea(target);
+    };
+
+    // toggles whether the item is completed or not
+    const toggleCheck = (target) => {
+        let listItem = target.parentElement.parentElement;
+        let todoIndex = listItem.getAttribute('data-index');
+        let todos = getTodos();
+        let todoObj = todos[todoIndex];
+        TodoManager.toggleCompletion(todoObj);
+
+        if (todoObj.completed) {
+            target.innerText = 'done';
+            target.nextElementSibling.style.textDecoration = 'line-through';
+        } else {
+            target.innerText = '[]';
+            target.nextElementSibling.style.textDecoration = 'none';
+        }
     };
 
     // gets a list of todos from the current project
@@ -327,6 +355,16 @@ const UIManager = (() => {
                 editTodo(e.target);
             });
         });
+
+        //add event listener for completed buttons
+        let completedBtns = document.querySelectorAll(
+            '.list-item button.checkbox',
+        );
+        completedBtns.forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                toggleCheck(e.target);
+            });
+        });
     };
 
     // initial population of todo items
@@ -366,6 +404,13 @@ const UIManager = (() => {
 
         if (editTaskMode) {
             editTaskMode = false;
+            removeHighlight(
+                document.querySelector(
+                    `.list-item[data-index='${addTaskArea.getAttribute(
+                        'data-edit',
+                    )}']`,
+                ),
+            );
         }
         //reset form values
         addTaskForm.reset();
@@ -400,13 +445,6 @@ const UIManager = (() => {
                     .querySelector('.list-item.highlight')
                     .getAttribute('data-index'),
             );
-            removeHighlight(
-                document.querySelector(
-                    `.list-item[data-index='${addTaskArea.getAttribute(
-                        'data-edit',
-                    )}']`,
-                ),
-            );
         }
 
         //re-populate list with new todo added
@@ -418,13 +456,11 @@ const UIManager = (() => {
 
     // highlights the list item we are editing
     const addHighlight = (listEl) => {
-        console.log('adding highlight on:', listEl);
         listEl.classList.add('highlight');
     };
 
     // removes highlight on list item
     const removeHighlight = (listEl) => {
-        console.log('removing highlight on:', listEl);
         listEl.classList.remove('highlight');
     };
 
@@ -528,7 +564,6 @@ const UIManager = (() => {
     exitAddTaskArea.addEventListener('click', closeAddTaskArea);
 
     addTaskForm.addEventListener('submit', (e) => {
-        console.log('hi');
         e.preventDefault();
         submitTask();
     });
