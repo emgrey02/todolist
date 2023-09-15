@@ -48,6 +48,11 @@ p {
     padding: 0;
 }
 
+.highlight {
+    box-shadow: 3px 3px 15px yellow;
+}
+
+
 // main areas of page
 nav {
     background-color: grey;
@@ -76,6 +81,7 @@ nav {
 
         .lower-nav li:not(:first-child) {
             display: flex;
+
         }
 
         li[data-id] button {

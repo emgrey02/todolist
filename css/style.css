@@ -45,6 +45,10 @@ p {
   padding: 0;
 }
 
+.highlight {
+  box-shadow: 3px 3px 15px yellow;
+}
+
 nav {
   background-color: grey;
   padding-inline: 1em;

@@ -43,9 +43,10 @@ const TodoManager = (() => {
         ProjectManager.updateTodoIndices(relProject.index);
     };
 
-    const editTodo = (todoObj) => {
-        let relProject = getProjectFromTodo(todoObj);
-        relProject.todoList[todoObj.index] = todoObj;
+    const editTodo = (newTodoObj, taskIndex) => {
+        let relProject = getProjectFromTodo(newTodoObj);
+        relProject.todoList[taskIndex] = newTodoObj;
+        relProject.todoList[taskIndex].index = taskIndex;
     };
 
     return { createTodo, addTodoToProject, removeTodoFromProject, editTodo };
@@ -111,7 +112,8 @@ const ProjectManager = (() => {
 
 //one UIManager, so it is a module / IIFE
 const UIManager = (() => {
-    let editMode = false;
+    let editProjMode = false;
+    let editTaskMode = false;
 
     //create default project
     let newProj = ProjectManager.createProject();
@@ -146,42 +148,41 @@ const UIManager = (() => {
         }
     };
 
-    // used when editMode is toggled
-    const updateProjectEventListeners = () => {
+    const addProjectEventListeners = () => {
         // add event listeners to buttons
         // also handles adding/removing delete btns
         let projBtns = document.querySelectorAll(
             `li[data-id] button:not([class])`,
         );
-        if (!editMode) {
-            let delBtns = document.querySelectorAll('.delete-proj');
-            delBtns.forEach((btn) => {
-                btn.style.display = 'none';
-            });
-            console.log('editMode:', editMode);
-            projBtns.forEach((btn) =>
-                btn.addEventListener('click', (e) => {
-                    showProjTodos(
-                        +e.target.parentElement.getAttribute('data-id'),
-                    );
-                }),
-            );
-        } else {
-            console.log('editMode:', editMode);
-            projBtns.forEach((btn) =>
-                btn.addEventListener('click', (e) => {
-                    openAddProjectArea(e);
-                }),
-            );
-            let delBtns = document.querySelectorAll('.delete-proj');
-            delBtns.forEach((btn) => {
+
+        //handle delete btns
+        let delBtns = document.querySelectorAll('.delete-proj');
+        delBtns.forEach((btn) => {
+            if (editProjMode) {
                 btn.style.display = 'block';
                 let projIndex = btn.parentElement.getAttribute('data-id');
                 btn.addEventListener('click', () => {
                     deleteProject(projIndex);
                 });
+            } else {
+                btn.style.display = 'none';
+            }
+        });
+
+        //handle project buttons
+        projBtns.forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                console.log(btn, 'was clicked');
+                if (editProjMode) {
+                    openAddProjectArea(e);
+                    addHighlight(e.target.parentElement);
+                } else {
+                    showProjTodos(
+                        +e.target.parentElement.getAttribute('data-id'),
+                    );
+                }
             });
-        }
+        });
     };
 
     //populate project list
@@ -204,12 +205,12 @@ const UIManager = (() => {
             btnElement.innerText = projects[i].name;
             lowerNav.appendChild(listElement);
 
-            if (!editMode) {
+            if (!editProjMode) {
                 deleteBtn.style.display = 'none';
             }
         }
 
-        updateProjectEventListeners();
+        addProjectEventListeners();
     };
 
     //initial population
@@ -220,7 +221,7 @@ const UIManager = (() => {
     // add Task objects
     const addTaskBtn = document.querySelector('.add-task > button');
     const addTaskArea = document.querySelector('main .edit-area');
-    const exitAddTaskArea = document.querySelector('button.exit');
+    const exitAddTaskArea = document.querySelector('.edit-area button.exit');
     const addTaskForm = document.querySelector('.edit-area form');
     const taskTitle = document.querySelector('.edit-area .text-ctn input');
 
@@ -252,12 +253,22 @@ const UIManager = (() => {
             target.parentElement.parentElement.getAttribute('data-index');
         // make a copy with slice - don't want to alter actual todos
         let todos = getTodos().slice(0);
+        console.log(todos);
         // get the todo object from its index
         let todo = todos.filter((item) => item.index == todoIndex);
         // remove it
         TodoManager.removeTodoFromProject(todo[0]);
         // repopulate DOM
         populateTodos();
+    };
+
+    // put in editTaskMode - boolean
+    // opens edit task area - place next to / in place of item?
+    // highlights list item
+    const editTodo = (target) => {
+        editTaskMode = true;
+        addHighlight(target.parentElement.parentElement);
+        openAddTaskArea(target);
     };
 
     // gets a list of todos from the current project
@@ -302,12 +313,20 @@ const UIManager = (() => {
         });
 
         //add event listener for delete buttons
-        let delBtn = document.querySelectorAll('button.delete');
-        delBtn.forEach((btn) =>
+        let delBtns = document.querySelectorAll('button.delete');
+        delBtns.forEach((btn) =>
             btn.addEventListener('click', (e) => {
                 removeTodo(e.target);
             }),
         );
+
+        //add event listener for edit buttons
+        let editTaskBtns = document.querySelectorAll('.list-item button.edit');
+        editTaskBtns.forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                editTodo(e.target);
+            });
+        });
     };
 
     // initial population of todo items
@@ -319,12 +338,37 @@ const UIManager = (() => {
         addTaskArea.style.visibility = 'initial';
         addTaskBtn.parentElement.style.display = 'none';
         taskTitle.focus();
+
+        if (editTaskMode) {
+            let itemIndex = document
+                .querySelector('.list-item.highlight')
+                .getAttribute('data-index');
+            let todoObj = getTodos()[itemIndex];
+            addTaskArea.setAttribute('data-edit', itemIndex);
+
+            document.querySelector('#edit-title').value = todoObj.title;
+            document.querySelector('#edit-desc').value = todoObj.description;
+            document.querySelector('#due-date').value = todoObj.dueDate;
+            document.querySelector('#priority').value = todoObj.priority;
+            document.querySelector('.add-task-btn button').innerText =
+                'Confirm Edit';
+        } else {
+            document.querySelector('.add-task-btn button').innerText =
+                'Add Task';
+            addTaskArea.removeAttribute('data-edit');
+        }
     };
 
     // closes the form when exited or when submitted
     const closeAddTaskArea = () => {
         addTaskArea.style.visibility = 'hidden';
         addTaskBtn.parentElement.style.display = 'flex';
+
+        if (editTaskMode) {
+            editTaskMode = false;
+        }
+        //reset form values
+        addTaskForm.reset();
     };
 
     // creates a todo object from entered form data
@@ -345,26 +389,56 @@ const UIManager = (() => {
             +theList.getAttribute('data-projectId'),
         );
 
-        // add todo object to current project
-        TodoManager.addTodoToProject(newTodo);
+        if (!editTaskMode) {
+            // add todo object to current project
+            TodoManager.addTodoToProject(newTodo);
+        } else {
+            // edit the todo object
+            TodoManager.editTodo(
+                newTodo,
+                +document
+                    .querySelector('.list-item.highlight')
+                    .getAttribute('data-index'),
+            );
+            removeHighlight(
+                document.querySelector(
+                    `.list-item[data-index='${addTaskArea.getAttribute(
+                        'data-edit',
+                    )}']`,
+                ),
+            );
+        }
 
         //re-populate list with new todo added
         populateTodos();
 
-        // reset form values
-        addTaskForm.reset();
-
         //close form
         closeAddTaskArea();
+    };
+
+    // highlights the list item we are editing
+    const addHighlight = (listEl) => {
+        console.log('adding highlight on:', listEl);
+        listEl.classList.add('highlight');
+    };
+
+    // removes highlight on list item
+    const removeHighlight = (listEl) => {
+        console.log('removing highlight on:', listEl);
+        listEl.classList.remove('highlight');
     };
 
     // opens area to add or edit a new project
     const openAddProjectArea = (e) => {
         let addProjArea = document.querySelector('div.new-proj');
         let titleInput = document.querySelector('#project-title');
+
+        //make it visible
         addProjArea.style.display = 'block';
 
-        if (editMode && !e.target.classList.contains('add-proj')) {
+        // if we're in editmode
+        if (editProjMode && !e.target.classList.contains('add-proj')) {
+            // toggleHighlight(e.target.parentElement);
             document.querySelector('.input-ctn label').innerText =
                 'Edit your list name:';
             document.querySelector('#project-title').value = e.target.innerText;
@@ -388,16 +462,26 @@ const UIManager = (() => {
     const closeAddProjectArea = () => {
         let addProjArea = document.querySelector('div.new-proj');
         addProjArea.style.display = 'none';
+        let form = document.querySelector('div.new-proj form');
+
+        if (editProjMode) {
+            removeHighlight(
+                document.querySelector(
+                    `li[data-id='${addProjArea.getAttribute('data-edit')}']`,
+                ),
+            );
+        }
+
+        form.reset();
     };
 
     const submitProject = () => {
-        let form = document.querySelector('div.new-proj form');
         let addProjArea = document.querySelector('div.new-proj');
         let projName = document.querySelector(
             'div.new-proj #project-title',
         ).value;
 
-        if (!editMode) {
+        if (!editProjMode) {
             let newProj = ProjectManager.createProject(projName);
             ProjectManager.addProject(newProj);
         } else {
@@ -413,8 +497,6 @@ const UIManager = (() => {
 
         populateProjectList();
 
-        form.reset();
-
         closeAddProjectArea();
     };
 
@@ -428,14 +510,16 @@ const UIManager = (() => {
     };
 
     const editProjects = () => {
-        // boolean for editMode
-        editMode = !editMode;
-        if (editMode) {
+        // boolean for editProjMode
+        editProjMode = !editProjMode;
+        if (editProjMode) {
             editProjectBtn.innerText = 'stop editing';
+            newProjectBtn.style.display = 'none';
         } else {
             editProjectBtn.innerText = 'edit';
+            newProjectBtn.style.display = 'block';
         }
-        updateProjectEventListeners();
+        addProjectEventListeners();
     };
 
     // event listeners
@@ -444,6 +528,7 @@ const UIManager = (() => {
     exitAddTaskArea.addEventListener('click', closeAddTaskArea);
 
     addTaskForm.addEventListener('submit', (e) => {
+        console.log('hi');
         e.preventDefault();
         submitTask();
     });
