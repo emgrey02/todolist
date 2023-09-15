@@ -74,6 +74,18 @@ nav {
             }
         }
 
+        .lower-nav li:not(:first-child) {
+            display: flex;
+        }
+
+        li[data-id] button {
+            flex-grow: 4;
+        }
+
+        li[data-id] .delete-proj {
+            flex-shrink: 6;
+        }
+
         .new-proj {
             padding-block: 1em;
 

@@ -86,9 +86,8 @@ const ProjectManager = (() => {
         return projects[projIndex];
     };
 
-    const editProject = (projObj) => {
-        projects[projObj.index].title = projObj.title;
-        projects[projObj.index].todoList = projObj.todoList;
+    const editProject = (newTitle, projIndex) => {
+        projects[projIndex].name = newTitle;
     };
 
     const removeProject = (index) => {
@@ -112,14 +111,30 @@ const ProjectManager = (() => {
 
 //one UIManager, so it is a module / IIFE
 const UIManager = (() => {
+    let editMode = false;
+
     //create default project
     let newProj = ProjectManager.createProject();
     ProjectManager.addProject(newProj);
 
+    // set project's title
+    const setProjTitle = (projIndex) => {
+        let projTitle = document.querySelector('div.the-list h2');
+        projTitle.innerText = ProjectManager.getProject(projIndex).name;
+    };
+
     // show appropriate todo items based on the project
     const showProjTodos = (projIndex) => {
         theList.setAttribute('data-projectId', projIndex);
+        setProjTitle(projIndex);
         populateTodos();
+    };
+
+    const updateProjectTitle = (projName, projIndex) => {
+        if (projIndex == theList.getAttribute('data-projectId')) {
+            let projTitle = document.querySelector('div.the-list h2');
+            projTitle.innerText = projName;
+        }
     };
 
     //clear project list
@@ -128,6 +143,44 @@ const UIManager = (() => {
 
         while (lowerNav.childElementCount != 1) {
             lowerNav.lastChild.remove();
+        }
+    };
+
+    // used when editMode is toggled
+    const updateProjectEventListeners = () => {
+        // add event listeners to buttons
+        // also handles adding/removing delete btns
+        let projBtns = document.querySelectorAll(
+            `li[data-id] button:not([class])`,
+        );
+        if (!editMode) {
+            let delBtns = document.querySelectorAll('.delete-proj');
+            delBtns.forEach((btn) => {
+                btn.style.display = 'none';
+            });
+            console.log('editMode:', editMode);
+            projBtns.forEach((btn) =>
+                btn.addEventListener('click', (e) => {
+                    showProjTodos(
+                        +e.target.parentElement.getAttribute('data-id'),
+                    );
+                }),
+            );
+        } else {
+            console.log('editMode:', editMode);
+            projBtns.forEach((btn) =>
+                btn.addEventListener('click', (e) => {
+                    openAddProjectArea(e);
+                }),
+            );
+            let delBtns = document.querySelectorAll('.delete-proj');
+            delBtns.forEach((btn) => {
+                btn.style.display = 'block';
+                let projIndex = btn.parentElement.getAttribute('data-id');
+                btn.addEventListener('click', () => {
+                    deleteProject(projIndex);
+                });
+            });
         }
     };
 
@@ -143,18 +196,20 @@ const UIManager = (() => {
             let listElement = document.createElement('li');
             listElement.setAttribute('data-id', i);
             let btnElement = document.createElement('button');
+            let deleteBtn = document.createElement('button');
+            deleteBtn.innerText = 'x';
+            deleteBtn.classList.add('delete-proj');
             listElement.appendChild(btnElement);
+            listElement.appendChild(deleteBtn);
             btnElement.innerText = projects[i].name;
             lowerNav.appendChild(listElement);
+
+            if (!editMode) {
+                deleteBtn.style.display = 'none';
+            }
         }
 
-        // add event listeners to buttons
-        let projBtns = document.querySelectorAll(`li[data-id] button`);
-        projBtns.forEach((btn) =>
-            btn.addEventListener('click', (e) => {
-                showProjTodos(+e.target.parentElement.getAttribute('data-id'));
-            }),
-        );
+        updateProjectEventListeners();
     };
 
     //initial population
@@ -174,14 +229,14 @@ const UIManager = (() => {
     const itemCont = document.querySelector('ul.ctn');
 
     // add project objects
-    const newProjectBtn = document.querySelector(`div.lists-title button`);
+    const newProjectBtn = document.querySelector(`div.lists-title .add-proj`);
+    const editProjectBtn = document.querySelector('div.lists-title .edit-proj');
     const addProjectBtn = document.querySelector(
         `div.btns button[type='submit']`,
     );
     const cancelAddProjectBtn = document.querySelector(
         `div.btns button[type='button']`,
     );
-    console.log(cancelAddProjectBtn);
 
     // clear all todos //
     // except the first one which is display: none and used for cloning //
@@ -210,7 +265,6 @@ const UIManager = (() => {
     // we set this data attribute when we click a project in the nav
     const getTodos = () => {
         let projectId = theList.getAttribute('data-projectId');
-        console.log('in getTodos:', projectId);
         return ProjectManager.getProject(projectId).todoList || null;
     };
 
@@ -254,8 +308,6 @@ const UIManager = (() => {
                 removeTodo(e.target);
             }),
         );
-
-        console.log(getTodos());
     };
 
     // initial population of todo items
@@ -306,10 +358,31 @@ const UIManager = (() => {
         closeAddTaskArea();
     };
 
-    // opens area to add a new project
-    const openAddProjectArea = () => {
+    // opens area to add or edit a new project
+    const openAddProjectArea = (e) => {
         let addProjArea = document.querySelector('div.new-proj');
+        let titleInput = document.querySelector('#project-title');
         addProjArea.style.display = 'block';
+
+        if (editMode && !e.target.classList.contains('add-proj')) {
+            document.querySelector('.input-ctn label').innerText =
+                'Edit your list name:';
+            document.querySelector('#project-title').value = e.target.innerText;
+            document.querySelector('.btns button:last-child').innerText =
+                'Confirm';
+            addProjArea.setAttribute(
+                'data-edit',
+                +e.target.parentElement.getAttribute('data-id'),
+            );
+        } else {
+            document.querySelector('.input-ctn label').innerText =
+                'Give your list a name:';
+            document.querySelector('#project-title').value = '';
+            document.querySelector('.btns button:last-child').innerText = 'Add';
+            addProjArea.removeAttribute('data-edit');
+        }
+
+        titleInput.focus();
     };
 
     const closeAddProjectArea = () => {
@@ -317,21 +390,52 @@ const UIManager = (() => {
         addProjArea.style.display = 'none';
     };
 
-    const submitNewProject = () => {
+    const submitProject = () => {
         let form = document.querySelector('div.new-proj form');
-
+        let addProjArea = document.querySelector('div.new-proj');
         let projName = document.querySelector(
             'div.new-proj #project-title',
         ).value;
 
-        let newProj = ProjectManager.createProject(projName);
-        ProjectManager.addProject(newProj);
+        if (!editMode) {
+            let newProj = ProjectManager.createProject(projName);
+            ProjectManager.addProject(newProj);
+        } else {
+            ProjectManager.editProject(
+                projName,
+                +addProjArea.getAttribute('data-edit'),
+            );
+            updateProjectTitle(
+                projName,
+                +addProjArea.getAttribute('data-edit'),
+            );
+        }
 
         populateProjectList();
 
         form.reset();
 
         closeAddProjectArea();
+    };
+
+    const deleteProject = (projIndex) => {
+        if (ProjectManager.getAllProjects().length === 1) {
+            alert('you must have at least one project');
+        } else {
+            ProjectManager.removeProject(projIndex);
+            populateProjectList();
+        }
+    };
+
+    const editProjects = () => {
+        // boolean for editMode
+        editMode = !editMode;
+        if (editMode) {
+            editProjectBtn.innerText = 'stop editing';
+        } else {
+            editProjectBtn.innerText = 'edit';
+        }
+        updateProjectEventListeners();
     };
 
     // event listeners
@@ -344,13 +448,16 @@ const UIManager = (() => {
         submitTask();
     });
 
-    newProjectBtn.addEventListener('click', openAddProjectArea);
+    newProjectBtn.addEventListener('click', (e) => openAddProjectArea(e));
 
     cancelAddProjectBtn.addEventListener('click', closeAddProjectArea);
+
     addProjectBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        submitNewProject();
+        submitProject();
     });
+
+    editProjectBtn.addEventListener('click', editProjects);
 })();
 
 //tests

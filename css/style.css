@@ -65,6 +65,15 @@ nav .nav-list .upper-nav button,
 nav .nav-list .lower-nav button {
   width: 100%;
 }
+nav .nav-list .lower-nav li:not(:first-child) {
+  display: flex;
+}
+nav .nav-list li[data-id] button {
+  flex-grow: 4;
+}
+nav .nav-list li[data-id] .delete-proj {
+  flex-shrink: 6;
+}
 nav .nav-list .new-proj {
   padding-block: 1em;
 }
