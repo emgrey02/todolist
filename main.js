@@ -140,6 +140,10 @@ const ProjectManager = (() => {
         return upcomingTodos;
     };
 
+    const assignFromStorage = () => {
+        projects = StorageManager.getLocalStorageProjects();
+    };
+
     return {
         createProject,
         getAllProjects,
@@ -151,6 +155,7 @@ const ProjectManager = (() => {
         listAllTodos,
         getTodayTodos,
         getUpcomingTodos,
+        assignFromStorage,
     };
 })();
 
@@ -160,15 +165,35 @@ const UIManager = (() => {
     let editTaskMode = false;
 
     // set project's title
-    const setProjTitle = (projIndex) => {
-        let projTitle = document.querySelector('div.the-list h2');
-        projTitle.innerText = ProjectManager.getProject(projIndex).name;
-    };
+    // const setProjTitle = (projIndex) => {
+    //     let projTitle = document.querySelector('div.the-list h2');
+    //     projTitle.innerText = ProjectManager.getProject(projIndex).name;
+    // };
 
     // show appropriate todo items based on the project
     const showProjTodos = (projIndex) => {
+        let name;
         theList.setAttribute('data-projectId', projIndex);
-        setProjTitle(projIndex);
+
+        if (+projIndex || +projIndex === 0) {
+            name = ProjectManager.getProject(projIndex).name;
+        } else {
+            console.log('wehooo');
+            switch (projIndex) {
+                case 'all':
+                    name = 'All Todos';
+                    break;
+                case 'today':
+                    name = 'Today';
+                    break;
+                case 'upcoming':
+                    name = 'Upcoming';
+                    break;
+                default:
+                    break;
+            }
+        }
+        updateProjectTitle(name, projIndex);
         populateTodos();
     };
 
@@ -178,6 +203,7 @@ const UIManager = (() => {
             let projTitle = document.querySelector('div.the-list h2');
             projTitle.innerText = projName;
         }
+        StorageManager.updateLocalStorage();
     };
 
     //clear project list
@@ -405,6 +431,8 @@ const UIManager = (() => {
 
     // populates DOM with todo list based on project
     const populateTodos = () => {
+        // update localstorage
+        StorageManager.updateLocalStorage();
         // get our hidden listItem that we will use for cloning
         const listItem = document.querySelector('li.list-item');
 
@@ -804,12 +832,42 @@ const UIManager = (() => {
 
     upcomingBtn.addEventListener('click', listUpcomingTodos);
 
-    return { populateProjectList, populateTodos };
+    return { populateProjectList, populateTodos, showProjTodos };
+})();
+
+const StorageManager = (() => {
+    const updateLocalStorage = () => {
+        localStorage.setItem(
+            'projects',
+            JSON.stringify(ProjectManager.getAllProjects()),
+        );
+        localStorage.setItem(
+            'page',
+            document.querySelector('.the-list').getAttribute('data-projectid'),
+        );
+    };
+
+    const getLocalStorageProjects = () => {
+        return JSON.parse(localStorage.getItem('projects')) || '';
+    };
+
+    const getLocalStoragePage = () => {
+        console.log(localStorage.getItem('page'));
+        return localStorage.getItem('page');
+    };
+
+    return { updateLocalStorage, getLocalStorageProjects, getLocalStoragePage };
 })();
 
 //create default project
-let newProj = ProjectManager.createProject();
-ProjectManager.addProject(newProj);
+if (StorageManager.getLocalStorageProjects() == '') {
+    let newProj = ProjectManager.createProject();
+    ProjectManager.addProject(newProj);
+    StorageManager.updateLocalStorage();
+} else {
+    ProjectManager.assignFromStorage();
+    UIManager.showProjTodos(StorageManager.getLocalStoragePage());
+}
 
 UIManager.populateProjectList();
 UIManager.populateTodos();
