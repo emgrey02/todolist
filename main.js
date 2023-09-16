@@ -1,4 +1,5 @@
 import './css/style.css';
+import { format, parse, compareAsc } from 'date-fns';
 
 //there is one todoManager, so it will be a module IIFE
 //it's job is to manage todo objects, create/delete/edit
@@ -68,7 +69,7 @@ const ProjectManager = (() => {
     let projects = [];
 
     //factory function for projects - there will be many
-    //default project
+    //default project is named 'Personal'
     const createProject = (name = 'Personal') => {
         let todoList = [];
         let index;
@@ -109,6 +110,36 @@ const ProjectManager = (() => {
         return projects;
     };
 
+    const listAllTodos = () => {
+        let allTodos = [];
+        let todoCollection = projects.map((proj) => proj.todoList);
+        allTodos = todoCollection.flat();
+        return allTodos;
+    };
+
+    const getTodayTodos = () => {
+        let allTodos = listAllTodos();
+        let todaysDate = format(new Date(), 'MMM d');
+        let todayTodos = allTodos.filter((todo) => {
+            return todo.dueDate == todaysDate;
+        });
+        return todayTodos;
+    };
+
+    const getUpcomingTodos = () => {
+        let allTodos = listAllTodos();
+        let todaysDate = new Date();
+        let upcomingTodos = allTodos.filter((todo) => {
+            return (
+                compareAsc(
+                    todaysDate,
+                    parse(todo.dueDate, 'MMM d', new Date()),
+                ) == -1
+            );
+        });
+        return upcomingTodos;
+    };
+
     return {
         createProject,
         getAllProjects,
@@ -117,6 +148,9 @@ const ProjectManager = (() => {
         editProject,
         removeProject,
         updateTodoIndices,
+        listAllTodos,
+        getTodayTodos,
+        getUpcomingTodos,
     };
 })();
 
@@ -124,10 +158,6 @@ const ProjectManager = (() => {
 const UIManager = (() => {
     let editProjMode = false;
     let editTaskMode = false;
-
-    //create default project
-    let newProj = ProjectManager.createProject();
-    ProjectManager.addProject(newProj);
 
     // set project's title
     const setProjTitle = (projIndex) => {
@@ -142,6 +172,7 @@ const UIManager = (() => {
         populateTodos();
     };
 
+    // this changes the project title when we select a project from the sidebar
     const updateProjectTitle = (projName, projIndex) => {
         if (projIndex == theList.getAttribute('data-projectId')) {
             let projTitle = document.querySelector('div.the-list h2');
@@ -158,7 +189,9 @@ const UIManager = (() => {
         }
     };
 
-    const addProjectEventListeners = () => {
+    // we call this when our Project List is updated...
+    // there's lots of new buttons to listen to
+    const updateProjectListEventListeners = () => {
         // add event listeners to buttons
         // also handles adding/removing delete btns
         let projBtns = document.querySelectorAll(
@@ -219,11 +252,8 @@ const UIManager = (() => {
             }
         }
 
-        addProjectEventListeners();
+        updateProjectListEventListeners();
     };
-
-    //initial population
-    populateProjectList();
 
     // DOM objects
 
@@ -248,6 +278,13 @@ const UIManager = (() => {
         `div.btns button[type='button']`,
     );
 
+    // top nav buttons
+    let allTodosBtn = document.querySelector(
+        '.upper-nav li:first-child button',
+    );
+    let todayBtn = document.querySelector('.upper-nav li:nth-child(2) button');
+    let upcomingBtn = document.querySelector('.upper-nav li:last-child button');
+
     // clear all todos //
     // except the first one which is display: none and used for cloning //
     const clearTodos = () => {
@@ -256,15 +293,59 @@ const UIManager = (() => {
         }
     };
 
+    // we call this when we are removing or editing a task, on any page
+    const getCorrectTodoObj = (target) => {
+        let correctTodoObj;
+        let domItemIndex;
+        let domItemProj;
+
+        // get the project id - can be a number or 'all todos', 'today', or 'upcoming'
+        let projId = theList.getAttribute('data-projectId');
+
+        // we get todos for this page
+        let listedTodos = getTodos();
+
+        //if we're editing
+        if (editTaskMode) {
+            domItemIndex = +document
+                .querySelector('.list-item.highlight')
+                .getAttribute('data-index');
+
+            // if we're removing
+        } else {
+            domItemIndex =
+                +target.parentElement.parentElement.getAttribute('data-index');
+        }
+
+        // reassign / get correct todoObj if we are viewing 'all todos', 'today', or 'upcoming'
+        if (projId == 'all' || projId == 'today' || projId == 'upcoming') {
+            correctTodoObj = listedTodos.find((todo) => {
+                let itemProj = todo.projectId;
+                let itemIndex = todo.index;
+                if (editTaskMode) {
+                    domItemProj = +document
+                        .querySelector('.list-item.highlight')
+                        .getAttribute('data-projId');
+                } else {
+                    domItemProj =
+                        +target.parentElement.parentElement.getAttribute(
+                            'data-projId',
+                        );
+                }
+                return itemProj == domItemProj && itemIndex == domItemIndex;
+            });
+        } else {
+            // get the todoObj with the index we got
+            correctTodoObj = listedTodos[domItemIndex];
+        }
+
+        return correctTodoObj;
+    };
+
     // removes todo from DOM and from Project Object
     const removeTodo = (target) => {
-        let todoIndex =
-            target.parentElement.parentElement.getAttribute('data-index');
-        // make a copy with slice - don't want to alter actual todos
-        let todos = getTodos();
-
         // get the todo object from its index
-        let todoObj = todos[todoIndex];
+        let todoObj = getCorrectTodoObj(target);
 
         // remove it
         TodoManager.removeTodoFromProject(todoObj);
@@ -279,7 +360,12 @@ const UIManager = (() => {
     const editTodo = (target) => {
         editTaskMode = true;
         addHighlight(target.parentElement.parentElement);
-        openAddTaskArea(target);
+        console.log('clicked edit button');
+        console.log(
+            'projects(before we open input area):',
+            ProjectManager.getAllProjects(),
+        );
+        openTaskInputArea(target);
     };
 
     // toggles whether the item is completed or not
@@ -304,41 +390,90 @@ const UIManager = (() => {
     // we set this data attribute when we click a project in the nav
     const getTodos = () => {
         let projectId = theList.getAttribute('data-projectId');
-        return ProjectManager.getProject(projectId).todoList || null;
+
+        switch (projectId) {
+            case 'all':
+                return ProjectManager.listAllTodos();
+            case 'today':
+                return ProjectManager.getTodayTodos();
+            case 'upcoming':
+                return ProjectManager.getUpcomingTodos();
+            default:
+                return ProjectManager.getProject(+projectId).todoList;
+        }
     };
 
     // populates DOM with todo list based on project
     const populateTodos = () => {
+        // get our hidden listItem that we will use for cloning
         const listItem = document.querySelector('li.list-item');
-        let todos = getTodos()?.slice(0);
+
+        // get the todos for the current project / category
+        let todos = getTodos();
 
         // first, clear the DOM
         clearTodos();
 
         // repopulate DOM
         todos.forEach((item, index) => {
-            // use what's already in html
+            // use what's already in html, clone the node deeply
+            // and make visible
             let clone = listItem.cloneNode(true);
             itemCont.appendChild(clone);
             clone.style.display = 'grid';
 
-            // this helps us connect DOM item to todo item
-            clone.setAttribute('data-index', index);
+            let projId = theList.getAttribute('data-projectid');
 
-            // input data into correct html elements
-            document.querySelector(
-                `li[data-index='${index}'] .text-ctn .title`,
-            ).innerText = item.title;
-            document.querySelector(
-                `li[data-index='${index}'] .text-ctn .desc`,
-            ).innerText = item.description;
-            document.querySelector(
-                `li[data-index='${index}'] .end .priority`,
-            ).innerText = item.priority;
-            document.querySelector(
-                `li[data-index='${index}'] .end .date`,
-            ).innerText = item.dueDate;
+            // if we are populating a project
+            // if data attribute is a number rather than a string ( we don't want 0 to be false)
+            if (+projId || +projId === 0) {
+                console.log('populating a project');
+                // this helps us connect DOM item to todo item
+                clone.setAttribute('data-index', index);
+
+                // input data into correct html elementsS
+                document.querySelector(
+                    `li[data-index='${index}'] .text-ctn .title`,
+                ).innerText = item.title;
+                document.querySelector(
+                    `li[data-index='${index}'] .text-ctn .desc`,
+                ).innerText = item.description;
+                document.querySelector(
+                    `li[data-index='${index}'] .end .priority`,
+                ).innerText = item.priority;
+                document.querySelector(
+                    `li[data-index='${index}'] .end .date`,
+                ).innerText = item.dueDate;
+
+                addTaskBtn.parentElement.style.display = 'flex';
+
+                // else we are populating 'all tasks', 'today', or 'upcoming'
+            } else {
+                console.log('populating all todos, today, or upcoming');
+                // connect each todo to its OG index and project
+                clone.setAttribute('data-index', item.index);
+                clone.setAttribute('data-projId', item.projectId);
+
+                // input data into correct html elements
+                document.querySelector(
+                    `li.list-item:last-child .text-ctn .title`,
+                ).innerText = item.title;
+                document.querySelector(
+                    `li.list-item:last-child .text-ctn .desc`,
+                ).innerText = item.description;
+                document.querySelector(
+                    `li.list-item:last-child .end .priority`,
+                ).innerText = item.priority;
+                document.querySelector(
+                    `li.list-item:last-child .end .date`,
+                ).innerText = item.dueDate;
+
+                // this doesn't work?
+                addTaskBtn.parentElement.style.display = 'none';
+            }
         });
+
+        // we make event listeners now since new elements are created
 
         //add event listener for delete buttons
         let delBtns = document.querySelectorAll('button.delete');
@@ -356,7 +491,7 @@ const UIManager = (() => {
             });
         });
 
-        //add event listener for completed buttons
+        //add event listener for completed buttons (task checkbox)
         let completedBtns = document.querySelectorAll(
             '.list-item button.checkbox',
         );
@@ -367,43 +502,76 @@ const UIManager = (() => {
         });
     };
 
-    // initial population of todo items
-    populateTodos();
-
-    // called when we click the plus button to add a task
-    // opens the form to add a task and puts focus on the first input element
-    const openAddTaskArea = () => {
+    // called when we click the plus btn to add a new task, or the edit button on a task to edit a task
+    // both open the same form element to add/edit a task, and puts focus on the first input element
+    const openTaskInputArea = () => {
+        // make form visible
         addTaskArea.style.visibility = 'initial';
+
+        // remove the 'Add Task' btn since we are now adding one
         addTaskBtn.parentElement.style.display = 'none';
+
+        //focus on the first input in the form - the task title
         taskTitle.focus();
 
+        // if the user clicked the 'edit' button on a task
         if (editTaskMode) {
-            let itemIndex = document
-                .querySelector('.list-item.highlight')
-                .getAttribute('data-index');
-            let todoObj = getTodos()[itemIndex];
-            addTaskArea.setAttribute('data-edit', itemIndex);
+            // we retrieve the correct todoObj
+            let todoObj = getCorrectTodoObj();
 
+            // connects this form element to the current task you're editing
+            // so later when we edit the task, we know by it's 'data-edit' attribute
+            // what it's index is in the project's todoList
+            addTaskArea.setAttribute('data-edit', todoObj.index);
+
+            // we provide the user a pre filled-in form so they can edit the info
             document.querySelector('#edit-title').value = todoObj.title;
             document.querySelector('#edit-desc').value = todoObj.description;
-            document.querySelector('#due-date').value = todoObj.dueDate;
+
+            let formattedDate =
+                todoObj.dueDate !== ''
+                    ? format(
+                          parse(todoObj.dueDate, 'MMM d', new Date()),
+                          'yyyy-MM-dd',
+                      )
+                    : '';
+
+            document.querySelector('#due-date').value = formattedDate;
+
             document.querySelector('#priority').value = todoObj.priority;
             document.querySelector('.add-task-btn button').innerText =
                 'Confirm Edit';
+
+            // if the user clicked the plus btn to add a new task
         } else {
+            // set submit button text
             document.querySelector('.add-task-btn button').innerText =
                 'Add Task';
+
+            // this area isn't connected to a previous task, we're making a new one.
+            // we don't need this label
             addTaskArea.removeAttribute('data-edit');
         }
+
+        // go to submitTask to see the rest of what happens after
     };
 
     // closes the form when exited or when submitted
+    // removes the highlight
     const closeAddTaskArea = () => {
         addTaskArea.style.visibility = 'hidden';
+
+        let projId = theList.getAttribute('data-projectId');
+
         addTaskBtn.parentElement.style.display = 'flex';
 
         if (editTaskMode) {
             editTaskMode = false;
+
+            if (projId == 'all' || projId == 'today' || projId == 'upcoming') {
+                addTaskBtn.parentElement.style.display = 'none';
+            }
+
             removeHighlight(
                 document.querySelector(
                     `.list-item[data-index='${addTaskArea.getAttribute(
@@ -418,36 +586,67 @@ const UIManager = (() => {
 
     // creates a todo object from entered form data
     const submitTask = () => {
-        // get form values
+        // get form values the user entered
         const formData = new FormData(addTaskForm);
+
+        // put it in a nice array
         let valueArray = [];
         for (const value of formData.values()) {
             valueArray.push(value);
         }
 
-        // create todo object
+        // format date
+        if (valueArray[2] != '') {
+            valueArray[2] = parse(valueArray[2], 'yyyy-MM-dd', new Date());
+            valueArray[2] = format(valueArray[2], 'MMM d');
+        }
+
+        let currentListItem;
+        let projId = theList.getAttribute('data-projectId');
+
+        if (
+            editTaskMode &&
+            (+projId == 'all' || +projId == 'today' || +projId == 'upcoming')
+        ) {
+            currentListItem = document.querySelector(
+                `.list-item.highlight[data-index]`,
+            );
+            projId = +currentListItem.getAttribute('data-projId');
+        } else if (editTaskMode) {
+            currentListItem = document.querySelector(
+                `.list-item.highlight[data-index]`,
+            );
+            projId = +theList.getAttribute('data-projectId');
+        } else {
+            projId = +theList.getAttribute('data-projectId');
+        }
+
+        // create todo object with TodoManager
+        // we get the project index from the parent element of this todo list
+        // or the list item itself if we are in 'all todos', 'today', or 'upcoming'
         let newTodo = TodoManager.createTodo(
             valueArray[0],
             valueArray[1],
             valueArray[2],
             valueArray[3],
-            +theList.getAttribute('data-projectId'),
+            projId,
         );
 
+        // if we aren't editing a task and submitting a new one
         if (!editTaskMode) {
             // add todo object to current project
             TodoManager.addTodoToProject(newTodo);
+
+            // if we are editing a previous task
         } else {
-            // edit the todo object
+            // give data to TodoManager to edit the todo
             TodoManager.editTodo(
                 newTodo,
-                +document
-                    .querySelector('.list-item.highlight')
-                    .getAttribute('data-index'),
+                +currentListItem.getAttribute('data-index'),
             );
         }
 
-        //re-populate list with new todo added
+        //re-populate list with new todo added / current todo edited
         populateTodos();
 
         //close form
@@ -534,6 +733,8 @@ const UIManager = (() => {
         populateProjectList();
 
         closeAddProjectArea();
+
+        console.log('projects:', ProjectManager.getAllProjects());
     };
 
     const deleteProject = (projIndex) => {
@@ -555,11 +756,29 @@ const UIManager = (() => {
             editProjectBtn.innerText = 'edit';
             newProjectBtn.style.display = 'block';
         }
-        addProjectEventListeners();
+        updateProjectListEventListeners();
+    };
+
+    const listAllTodos = () => {
+        theList.setAttribute('data-projectId', 'all');
+        updateProjectTitle('All Todos', 'all');
+        populateTodos();
+    };
+
+    const listTodayTodos = () => {
+        theList.setAttribute('data-projectId', 'today');
+        updateProjectTitle('Today', 'today');
+        populateTodos();
+    };
+
+    const listUpcomingTodos = () => {
+        theList.setAttribute('data-projectId', 'upcoming');
+        updateProjectTitle('Upcoming', 'upcoming');
+        populateTodos();
     };
 
     // event listeners
-    addTaskBtn.addEventListener('click', openAddTaskArea);
+    addTaskBtn.addEventListener('click', openTaskInputArea);
 
     exitAddTaskArea.addEventListener('click', closeAddTaskArea);
 
@@ -578,11 +797,19 @@ const UIManager = (() => {
     });
 
     editProjectBtn.addEventListener('click', editProjects);
+
+    allTodosBtn.addEventListener('click', listAllTodos);
+
+    todayBtn.addEventListener('click', listTodayTodos);
+
+    upcomingBtn.addEventListener('click', listUpcomingTodos);
+
+    return { populateProjectList, populateTodos };
 })();
 
-//tests
+//create default project
+let newProj = ProjectManager.createProject();
+ProjectManager.addProject(newProj);
 
-//create a new task
-//user presses button
-//user fills in values for:
-//title, description
+UIManager.populateProjectList();
+UIManager.populateTodos();
