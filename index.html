@@ -8,10 +8,14 @@
     <title>Todo List</title>
 </head>
 
-<body>
+<body style="visibility: hidden">
     <nav>
         <div class="title-ctn">
-            <img src="" height="40px" width="40px">
+            <svg height='40' width='40' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <title>Listz icon</title>
+                <path
+                    d="M0.41,13.41L6,19L7.41,17.58L1.83,12M22.24,5.58L11.66,16.17L7.5,12L6.07,13.41L11.66,19L23.66,7M18,7L16.59,5.58L10.24,11.93L11.66,13.34L18,7Z" />
+            </svg>
             <h1>Listz</h1>
         </div>
         <div class="nav-list">
@@ -30,8 +34,26 @@
                 <li>
                     <div class="lists-title">
                         <h3>Lists</h3>
-                        <button class="edit-proj">edit</button>
-                        <button class="add-proj">+</button>
+                        <div class="btn-ctn">
+                            <button class="edit-proj">
+                                <svg id="edit-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <title>edit projects</title>
+                                    <path
+                                        d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+                                </svg>
+                                <svg id="finish-svg" style='display: none' xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24">
+                                    <title>finish editing</title>
+                                    <path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" />
+                                </svg>
+                            </button>
+                            <button class="add-proj">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <title>add new project</title>
+                                    <path d="M20 14H14V20H10V14H4V10H10V4H14V10H20V14Z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </li>
                 <!-- new projects go here -->
@@ -61,25 +83,67 @@
             <div class="todos">
                 <ul class="ctn">
                     <li class="list-item" style="display: none">
-                        <div>
-                            <button class="checkbox">[]</button>
-                            <div class="text-ctn">
+                        <div class="start">
+                            <button class="checkbox">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <title>check task off</title>
+                                    <path
+                                        d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z" />
+                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <title>un-check task</title>
+                                    <path
+                                        d="M10,17L5,12L6.41,10.58L10,14.17L17.59,6.58L19,8M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z" />
+                                </svg>
+                            </button>
+                            <div class="title-ctn">
                                 <p class="title"></p>
+                            </div>
+                            <div class="desc-ctn">
                                 <p class="desc"></p>
+                            </div>
+                            <div class="info-ctn">
+                                <div>
+                                    <svg height='20' width='20' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                        <title>calendar</title>
+                                        <path
+                                            d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z" />
+                                    </svg>
+                                    <div class="date"></div>
+                                </div>
+                                <div class="priority"></div>
                             </div>
                         </div>
                         <div class="end">
-                            <div class="priority"></div>
-                            <div class="date"></div>
-                            <button class="edit">edit</button>
-                            <button class="delete">X</button>
+
+                            <button class="edit">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <title>edit task</title>
+                                    <path
+                                        d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+                                </svg>
+                            </button>
+                            <button class="delete">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <title>delete</title>
+                                    <path
+                                        d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M9,8H11V17H9V8M13,8H15V17H13V8Z" />
+                                </svg>
+                            </button>
+                            <div class="project-name"></div>
                         </div>
                     </li>
                     <!-- list items go here -->
                 </ul>
             </div>
             <div class="add-task">
-                <button>+</button>
+                <button>
+                    <svg id="add-task-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <title>add task</title>
+                        <path
+                            d="M17,13H13V17H11V13H7V11H11V7H13V11H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z" />
+                    </svg>
+                </button>
                 <p>Add Task</p>
             </div>
         </div>
@@ -87,24 +151,38 @@
             <div>
                 <form>
                     <div class="text-ctn">
-                        <input aria-label='task title' type="text" id="edit-title" name="title" />
+                        <input aria-label='task title' type="text" id="edit-title" name="title"
+                            placeholder="task name..." />
                         <div class="grow-wrap">
-                            <textarea id="edit-desc" onInput="this.parentNode.dataset.replicatedValue = this.value"
-                                name="task description" aria-label="task description"></textarea>
+                            <textarea id="edit-desc" placeholder='task description...'
+                                onInput="this.parentNode.dataset.replicatedValue = this.value" name="task description"
+                                aria-label="task description"></textarea>
                         </div>
                     </div>
                     <div class="settings">
-                        <input type="date" id="due-date" aria-label="due date" name="due date" />
-                        <select name="priority" id="priority" aria-label="priority">
-                            <option value="low">low</option>
-                            <option value="medium">medium</option>
-                            <option value="high">high</option>
-                        </select>
+                        <div>
+                            <label for="due-date">Due Date</label>
+                            <input type="date" id="due-date" aria-label="due date" name="due date" />
+                        </div>
+                        <div>
+                            <label for="priority">Priority</label>
+                            <select name="priority" id="priority" aria-label="priority">
+                                <option value="low">low</option>
+                                <option value="medium">medium</option>
+                                <option value="high">high</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="add-task-btn">
                         <button>Add Task</button>
                     </div>
-                    <button type="button" class="exit">exit</button>
+                    <button type="button" class="exit">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <title>close</title>
+                            <path
+                                d="M20 6.91L17.09 4L12 9.09L6.91 4L4 6.91L9.09 12L4 17.09L6.91 20L12 14.91L17.09 20L20 17.09L14.91 12L20 6.91Z" />
+                        </svg>
+                    </button>
                 </form>
             </div>
         </div>

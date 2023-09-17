@@ -2,9 +2,14 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 0.9;
   font-weight: 400;
+  --text: hsl(227, 20%, 82%);
+  --background: hsl(260, 6%, 13%);
+  --primary: hsl(177, 25%, 57%);
+  --secondary: hsl(219, 42%, 74%);
+  --accent: hsl(240, 25%, 41%);
   color-scheme: light dark;
-  color: rgba(32, 32, 32, 0.87);
-  background-color: #e4dddd;
+  color: var(--text);
+  background-color: var(--background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -17,7 +22,7 @@ body {
   width: 100%;
   height: 100vh;
   display: grid;
-  grid-template-columns: 1fr 5fr;
+  grid-template-columns: 200px auto;
   font-size: 16px;
 }
 
@@ -34,6 +39,9 @@ input {
 }
 
 button {
+  background-color: inherit;
+  color: inherit;
+  border: none;
   font-size: inherit;
   font-family: inherit;
   text-align: start;
@@ -46,21 +54,27 @@ p {
 }
 
 .highlight {
-  background-color: yellow;
+  background-color: var(--accent);
 }
 
 nav {
-  background-color: grey;
+  background-color: var(--secondary);
+  color: var(--background);
   padding-inline: 1em;
 }
 nav .title-ctn {
   display: flex;
   align-items: center;
-  gap: 1em;
+  gap: 0.3em;
   padding-block-start: 1em;
 }
 nav .nav-list {
   margin-block: 1em;
+}
+nav .nav-list ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
 }
 nav .nav-list ul:first-child {
   margin-block-end: 2em;
@@ -69,7 +83,13 @@ nav .nav-list .upper-nav button,
 nav .nav-list .lower-nav button {
   width: 100%;
 }
+nav .nav-list .upper-nav svg,
+nav .nav-list .lower-nav svg {
+  width: 25px;
+  height: 25px;
+}
 nav .nav-list .lower-nav li:not(:first-child) {
+  height: 25px;
   display: flex;
 }
 nav .nav-list li[data-id] button {
@@ -77,9 +97,11 @@ nav .nav-list li[data-id] button {
 }
 nav .nav-list li[data-id] .delete-proj {
   flex-shrink: 6;
+  height: 25px;
 }
 nav .nav-list .new-proj {
   padding-block: 1em;
+  width: 100%;
 }
 nav .nav-list .new-proj form {
   display: flex;
@@ -104,13 +126,17 @@ nav .lists-title {
   justify-content: space-between;
   align-items: center;
 }
+nav .lists-title .btn-ctn {
+  display: flex;
+  gap: 0.5em;
+}
 
 main {
-  padding-inline: max(2vw, 2em);
+  padding-inline: clamp(1rem, -9rem + 26.667vw, 15rem);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   grid-template-rows: auto;
-  grid-template: "list ." "edit .";
+  grid-template-areas: "list " "edit ";
   height: -moz-min-content;
   height: min-content;
   gap: 3em;
@@ -130,45 +156,110 @@ main .todos ul {
   align-items: center;
   padding-inline: 0.5em;
 }
-main .todos li {
+main .todos li.list-item {
   width: 100%;
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: auto min-content;
+  grid-template-rows: 1fr;
   padding-block: 0.5em;
+  padding-inline-end: 0.5em;
+  border: 1px solid rgb(194, 194, 194);
 }
-main .todos li .end {
-  justify-self: end;
+main .todos li.list-item .end {
+  display: grid;
+  grid-template-rows: min-content auto min-content;
+  grid-template-columns: auto auto;
+  grid-template-areas: " edit delete " ". ." "project-name project-name";
 }
-main .todos li div {
-  display: flex;
+main .todos li.list-item .end .edit {
+  grid-area: edit;
+}
+main .todos li.list-item .end .delete {
+  grid-area: delete;
+}
+main .todos li.list-item .end .project-name {
+  grid-area: project-name;
+  font-size: 0.8em;
+  justify-self: center;
+}
+main .todos li.list-item .start {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  grid-template-columns: min-content auto;
+  grid-template-areas: "checkbox title-ctn" ". desc-ctn" ". info-ctn";
   align-items: center;
-  gap: 1em;
+  -moz-column-gap: 0.5em;
+       column-gap: 0.5em;
+  row-gap: 0.2em;
 }
-main .todos li div .text-ctn {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2em;
+main .todos li.list-item .start .checkbox {
+  grid-area: checkbox;
+  display: grid;
+  place-items: start;
+  align-self: start;
+}
+main .todos li.list-item .start .checkbox svg {
+  width: 30px;
+  height: 30px;
+}
+main .todos li.list-item .start .title-ctn {
+  grid-area: title-ctn;
+  font-size: 1em;
   align-items: start;
 }
-main .todos li div .title {
-  font-weight: bold;
+main .todos li.list-item .start .desc-ctn {
+  grid-area: desc-ctn;
+  font-size: 0.9em;
+  line-height: 1.2;
 }
-main .todos li button {
+main .todos li.list-item .start .info-ctn {
+  grid-area: info-ctn;
+  margin-block-start: 0.5em;
+  font-size: 0.8em;
+  display: grid;
+  grid-template-columns: 100px 100px;
+  color: var(--secondary);
+}
+main .todos li.list-item .start .info-ctn div {
+  display: flex;
+  align-items: center;
+  gap: 0.1em;
+}
+main .todos li.list-item .start .info-ctn div svg {
+  fill: var(--secondary);
+}
+main .todos li.list-item button {
   display: grid;
   place-items: center;
 }
+main .todos li.list-item button svg {
+  width: 30px;
+  height: 30px;
+  fill: var(--primary);
+}
 main .add-task {
   display: flex;
-  gap: 1em;
+  gap: 0.2em;
   align-items: center;
   padding-inline-start: 0.5em;
   padding-block-start: 1em;
 }
+main .add-task button {
+  display: grid;
+  place-items: center;
+}
+main .add-task #add-task-svg {
+  width: 40px;
+  height: 40px;
+  fill: var(--accent);
+}
 main .edit-area {
-  background-color: lightgrey;
+  background-color: var(--accent);
   height: -moz-fit-content;
   height: fit-content;
   padding: 1em;
+  margin-inline-start: 0.5em;
+  margin-block-end: 1em;
   position: relative;
   visibility: hidden;
 }
@@ -176,15 +267,31 @@ main .edit-area form {
   display: grid;
   grid-template-columns: 2fr 0.5fr;
   grid-template-rows: auto auto;
+  row-gap: 1em;
 }
 main .edit-area form input,
-main .edit-area form select {
+main .edit-area form select,
+main .edit-area form textarea {
   font-family: inherit;
   font-size: inherit;
+  background-color: inherit;
+  border: 1px solid var(--background);
+}
+main .edit-area form input:focus-within,
+main .edit-area form select:focus-within,
+main .edit-area form textarea:focus-within {
+  border: 1px solid transparent;
+  outline: 2px solid var(--text);
+}
+main .edit-area form input option,
+main .edit-area form select option,
+main .edit-area form textarea option {
+  background-color: var(--background);
 }
 main .edit-area form .text-ctn {
   display: flex;
   flex-direction: column;
+  gap: 0.4em;
 }
 main .edit-area form .text-ctn #edit-title {
   padding: 0.5em 0.75em;
@@ -211,6 +318,8 @@ main .edit-area form .text-ctn .grow-wrap > textarea, main .edit-area form .text
 main .edit-area form .settings {
   grid-column: 1/2;
   align-self: end;
+  display: flex;
+  gap: 3em;
 }
 main .edit-area form .add-task-btn {
   grid-column: 2/3;
@@ -222,4 +331,9 @@ main .edit-area form .exit {
   right: 0;
   top: 0;
   margin: 0.5em;
+}
+main .edit-area form .exit svg {
+  width: 30px;
+  height: 30px;
+  fill: var(--text);
 }/*# sourceMappingURL=style.css.map */

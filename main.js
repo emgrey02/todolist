@@ -266,7 +266,8 @@ const UIManager = (() => {
             listElement.setAttribute('data-id', i);
             let btnElement = document.createElement('button');
             let deleteBtn = document.createElement('button');
-            deleteBtn.innerText = 'x';
+            deleteBtn.innerHTML =
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>close-thick</title><path d="M20 6.91L17.09 4L12 9.09L6.91 4L4 6.91L9.09 12L4 17.09L6.91 20L12 14.91L17.09 20L20 17.09L14.91 12L20 6.91Z" /></svg>';
             deleteBtn.classList.add('delete-proj');
             listElement.appendChild(btnElement);
             listElement.appendChild(deleteBtn);
@@ -370,6 +371,7 @@ const UIManager = (() => {
 
     // removes todo from DOM and from Project Object
     const removeTodo = (target) => {
+        console.log(target);
         // get the todo object from its index
         let todoObj = getCorrectTodoObj(target);
 
@@ -386,29 +388,30 @@ const UIManager = (() => {
     const editTodo = (target) => {
         editTaskMode = true;
         addHighlight(target.parentElement.parentElement);
-        console.log('clicked edit button');
-        console.log(
-            'projects(before we open input area):',
-            ProjectManager.getAllProjects(),
-        );
         openTaskInputArea(target);
     };
 
     // toggles whether the item is completed or not
     const toggleCheck = (target) => {
         let listItem = target.parentElement.parentElement;
-        let todoIndex = listItem.getAttribute('data-index');
-        let todos = getTodos();
-        let todoObj = todos[todoIndex];
-        TodoManager.toggleCompletion(todoObj);
 
-        if (todoObj.completed) {
-            target.innerText = 'done';
-            target.nextElementSibling.style.textDecoration = 'line-through';
+        let projId = theList.getAttribute('data-projectId');
+
+        let todoIndex = +listItem.getAttribute('data-index');
+        let todos = getTodos();
+        let todoObj;
+
+        if (+projId || +projId === 0) {
+            todoObj = todos[todoIndex];
         } else {
-            target.innerText = '[]';
-            target.nextElementSibling.style.textDecoration = 'none';
+            let projIndex = listItem.getAttribute('data-projid');
+            let correctProject = ProjectManager.getProject(+projIndex);
+
+            todoObj = correctProject.todoList[todoIndex];
         }
+
+        TodoManager.toggleCompletion(todoObj);
+        populateTodos();
     };
 
     // gets a list of todos from the current project
@@ -433,6 +436,7 @@ const UIManager = (() => {
     const populateTodos = () => {
         // update localstorage
         StorageManager.updateLocalStorage();
+
         // get our hidden listItem that we will use for cloning
         const listItem = document.querySelector('li.list-item');
 
@@ -442,6 +446,14 @@ const UIManager = (() => {
         // first, clear the DOM
         clearTodos();
 
+        let projId = theList.getAttribute('data-projectid');
+
+        if (+projId || +projId === 0) {
+            addTaskBtn.parentElement.style.display = 'flex';
+        } else {
+            addTaskBtn.parentElement.style.display = 'none';
+        }
+
         // repopulate DOM
         todos.forEach((item, index) => {
             // use what's already in html, clone the node deeply
@@ -450,54 +462,134 @@ const UIManager = (() => {
             itemCont.appendChild(clone);
             clone.style.display = 'grid';
 
-            let projId = theList.getAttribute('data-projectid');
-
             // if we are populating a project
             // if data attribute is a number rather than a string ( we don't want 0 to be false)
             if (+projId || +projId === 0) {
                 console.log('populating a project');
+
                 // this helps us connect DOM item to todo item
                 clone.setAttribute('data-index', index);
 
-                // input data into correct html elementsS
+                // for whether task is check or not
+                let uncheckedSvg = document.querySelector(
+                    `li[data-index='${index}'] .checkbox svg:first-child`,
+                );
+                let checkedSvg = document.querySelector(
+                    `li[data-index='${index}'] .checkbox svg:last-child`,
+                );
+
+                // input data into correct html elements
                 document.querySelector(
-                    `li[data-index='${index}'] .text-ctn .title`,
+                    `li[data-index='${index}'] .title-ctn .title`,
                 ).innerText = item.title;
                 document.querySelector(
-                    `li[data-index='${index}'] .text-ctn .desc`,
+                    `li[data-index='${index}'] .desc-ctn .desc`,
                 ).innerText = item.description;
-                document.querySelector(
-                    `li[data-index='${index}'] .end .priority`,
-                ).innerText = item.priority;
-                document.querySelector(
-                    `li[data-index='${index}'] .end .date`,
-                ).innerText = item.dueDate;
 
-                addTaskBtn.parentElement.style.display = 'flex';
+                if (item.priority == 'low') {
+                    document.querySelector(
+                        `li[data-index='${index}']  .priority`,
+                    ).innerHTML = '&#9872;';
+                } else if (item.priority == 'medium') {
+                    document.querySelector(
+                        `li[data-index='${index}']  .priority`,
+                    ).innerHTML = '&#9872; &#9872;';
+                } else if (item.priority == 'high') {
+                    document.querySelector(
+                        `li[data-index='${index}']  .priority`,
+                    ).innerHTML = '&#9872; &#9872; &#9872;';
+                }
+
+                if (item.dueDate == '') {
+                    document.querySelector(
+                        `li[data-index='${index}']  .date`,
+                    ).innerText = '- -';
+                } else {
+                    document.querySelector(
+                        `li[data-index='${index}']  .date`,
+                    ).innerText = item.dueDate;
+                }
+
+                if (item.completed) {
+                    checkedSvg.style.display = 'block';
+                    uncheckedSvg.style.display = 'none';
+                    document.querySelector(
+                        `li[data-index='${index}'] .title-ctn .title`,
+                    ).style.textDecoration = 'line-through';
+                } else {
+                    checkedSvg.style.display = 'none';
+                    uncheckedSvg.style.display = 'block';
+                    document.querySelector(
+                        `li[data-index='${index}'] .title-ctn .title`,
+                    ).style.textDecoration = 'none';
+                }
 
                 // else we are populating 'all tasks', 'today', or 'upcoming'
             } else {
                 console.log('populating all todos, today, or upcoming');
+
                 // connect each todo to its OG index and project
                 clone.setAttribute('data-index', item.index);
                 clone.setAttribute('data-projId', item.projectId);
 
+                // for whether task is check or not
+                let uncheckedSvg = document.querySelector(
+                    `li.list-item:last-child .checkbox svg:first-child`,
+                );
+                let checkedSvg = document.querySelector(
+                    `li.list-item:last-child .checkbox svg:last-child`,
+                );
+
                 // input data into correct html elements
                 document.querySelector(
-                    `li.list-item:last-child .text-ctn .title`,
+                    `li.list-item:last-child .title-ctn .title`,
                 ).innerText = item.title;
                 document.querySelector(
-                    `li.list-item:last-child .text-ctn .desc`,
+                    `li.list-item:last-child .desc-ctn .desc`,
                 ).innerText = item.description;
-                document.querySelector(
-                    `li.list-item:last-child .end .priority`,
-                ).innerText = item.priority;
-                document.querySelector(
-                    `li.list-item:last-child .end .date`,
-                ).innerText = item.dueDate;
 
-                // this doesn't work?
-                addTaskBtn.parentElement.style.display = 'none';
+                if (item.priority == 'low') {
+                    document.querySelector(
+                        `li.list-item:last-child .priority`,
+                    ).innerHTML = '&#9872;';
+                } else if (item.priority == 'medium') {
+                    document.querySelector(
+                        `li.list-item:last-child .priority`,
+                    ).innerHTML = '&#9872; &#9872;';
+                } else if (item.priority == 'high') {
+                    document.querySelector(
+                        `li.list-item:last-child .priority`,
+                    ).innerHTML = '&#9872; &#9872; &#9872;';
+                }
+
+                if (item.dueDate == '') {
+                    document.querySelector(
+                        `li.list-item:last-child .date`,
+                    ).innerText = '- -';
+                } else {
+                    document.querySelector(
+                        `li.list-item:last-child .date`,
+                    ).innerText = item.dueDate;
+                }
+
+                document.querySelector(
+                    `li.list-item:last-child .project-name`,
+                ).innerText =
+                    ProjectManager.getAllProjects()[item.projectId].name;
+
+                if (item.completed) {
+                    checkedSvg.style.display = 'block';
+                    uncheckedSvg.style.display = 'none';
+                    document.querySelector(
+                        `li.list-item:last-child .title-ctn .title`,
+                    ).style.textDecoration = 'line-through';
+                } else {
+                    checkedSvg.style.display = 'none';
+                    uncheckedSvg.style.display = 'block';
+                    document.querySelector(
+                        `li.list-item:last-child .title-ctn .title`,
+                    ).style.textDecoration = 'none';
+                }
             }
         });
 
@@ -507,7 +599,7 @@ const UIManager = (() => {
         let delBtns = document.querySelectorAll('button.delete');
         delBtns.forEach((btn) =>
             btn.addEventListener('click', (e) => {
-                removeTodo(e.target);
+                removeTodo(e.currentTarget);
             }),
         );
 
@@ -515,7 +607,7 @@ const UIManager = (() => {
         let editTaskBtns = document.querySelectorAll('.list-item button.edit');
         editTaskBtns.forEach((btn) => {
             btn.addEventListener('click', (e) => {
-                editTodo(e.target);
+                editTodo(e.currentTarget);
             });
         });
 
@@ -525,7 +617,7 @@ const UIManager = (() => {
         );
         completedBtns.forEach((btn) => {
             btn.addEventListener('click', (e) => {
-                toggleCheck(e.target);
+                toggleCheck(e.currentTarget);
             });
         });
     };
@@ -542,6 +634,8 @@ const UIManager = (() => {
         //focus on the first input in the form - the task title
         taskTitle.focus();
 
+        let projId = theList.getAttribute('data-projectid');
+
         // if the user clicked the 'edit' button on a task
         if (editTaskMode) {
             // we retrieve the correct todoObj
@@ -551,6 +645,10 @@ const UIManager = (() => {
             // so later when we edit the task, we know by it's 'data-edit' attribute
             // what it's index is in the project's todoList
             addTaskArea.setAttribute('data-edit', todoObj.index);
+
+            if (projId == 'all' || projId == 'today' || projId == 'upcoming') {
+                addTaskArea.setAttribute('data-proj', todoObj.projectId);
+            }
 
             // we provide the user a pre filled-in form so they can edit the info
             document.querySelector('#edit-title').value = todoObj.title;
@@ -593,20 +691,37 @@ const UIManager = (() => {
 
         addTaskBtn.parentElement.style.display = 'flex';
 
+        let currentListItem;
+
         if (editTaskMode) {
             editTaskMode = false;
 
             if (projId == 'all' || projId == 'today' || projId == 'upcoming') {
                 addTaskBtn.parentElement.style.display = 'none';
-            }
-
-            removeHighlight(
-                document.querySelector(
+                currentListItem = document.querySelector(
                     `.list-item[data-index='${addTaskArea.getAttribute(
                         'data-edit',
+                    )}'][data-projid='${addTaskArea.getAttribute(
+                        'data-proj',
                     )}']`,
-                ),
-            );
+                );
+                projId = currentListItem.getAttribute('data-projId');
+                removeHighlight(
+                    document.querySelector(
+                        `.list-item[data-index='${addTaskArea.getAttribute(
+                            'data-edit',
+                        )}'][data-projId='${projId}']`,
+                    ),
+                );
+            } else {
+                removeHighlight(
+                    document.querySelector(
+                        `.list-item[data-index='${addTaskArea.getAttribute(
+                            'data-edit',
+                        )}']`,
+                    ),
+                );
+            }
         }
         //reset form values
         addTaskForm.reset();
@@ -634,10 +749,12 @@ const UIManager = (() => {
 
         if (
             editTaskMode &&
-            (+projId == 'all' || +projId == 'today' || +projId == 'upcoming')
+            (projId == 'all' || projId == 'today' || projId == 'upcoming')
         ) {
             currentListItem = document.querySelector(
-                `.list-item.highlight[data-index]`,
+                `.list-item[data-index='${addTaskArea.getAttribute(
+                    'data-edit',
+                )}'][data-projid='${addTaskArea.getAttribute('data-proj')}']`,
             );
             projId = +currentListItem.getAttribute('data-projId');
         } else if (editTaskMode) {
@@ -761,8 +878,6 @@ const UIManager = (() => {
         populateProjectList();
 
         closeAddProjectArea();
-
-        console.log('projects:', ProjectManager.getAllProjects());
     };
 
     const deleteProject = (projIndex) => {
@@ -775,13 +890,18 @@ const UIManager = (() => {
     };
 
     const editProjects = () => {
+        let editSvg = document.querySelector('#edit-svg');
+        let finishSvg = document.querySelector('#finish-svg');
         // boolean for editProjMode
         editProjMode = !editProjMode;
+
         if (editProjMode) {
-            editProjectBtn.innerText = 'stop editing';
+            editSvg.style.display = 'none';
+            finishSvg.style.display = 'block';
             newProjectBtn.style.display = 'none';
         } else {
-            editProjectBtn.innerText = 'edit';
+            editSvg.style.display = 'block';
+            finishSvg.style.display = 'none';
             newProjectBtn.style.display = 'block';
         }
         updateProjectListEventListeners();
@@ -871,3 +991,14 @@ if (StorageManager.getLocalStorageProjects() == '') {
 
 UIManager.populateProjectList();
 UIManager.populateTodos();
+
+//prevent FOUC
+let domReady = (cb) => {
+    document.readyState === 'interactive' || document.readyState === 'complete'
+        ? cb()
+        : document.addEventListener('DOMContentLoaded', cb);
+};
+
+domReady(() => {
+    document.body.style.visibility = 'visible';
+});

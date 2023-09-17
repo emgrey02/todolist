@@ -4,9 +4,18 @@
     line-height: .9;
     font-weight: 400;
 
+
+
+    --text: hsl(227, 20%, 82%);
+    --background: hsl(260, 6%, 13%);
+    --primary: hsl(177, 25%, 57%);
+    --secondary: hsl(219, 42%, 74%);
+    --accent: hsl(240, 25%, 41%);
+
+
     color-scheme: light dark;
-    color: rgba(32, 32, 32, 0.87);
-    background-color: #e4dddd;
+    color: var(--text);
+    background-color: var(--background);
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -20,7 +29,7 @@ body {
     width: 100%;
     height: 100vh;
     display: grid;
-    grid-template-columns: 1fr 5fr;
+    grid-template-columns: 200px auto;
     font-size: 16px;
 }
 
@@ -37,6 +46,9 @@ input {
 }
 
 button {
+    background-color: inherit;
+    color: inherit;
+    border: none;
     font-size: inherit;
     font-family: inherit;
     text-align: start;
@@ -49,24 +61,32 @@ p {
 }
 
 .highlight {
-    background-color: yellow;
+    background-color: var(--accent);
 }
 
 
 // main areas of page
 nav {
-    background-color: grey;
+    background-color: var(--secondary);
+    color: var(--background);
     padding-inline: 1em;
 
     .title-ctn {
         display: flex;
         align-items: center;
-        gap: 1em;
+        gap: .3em;
         padding-block-start: 1em;
     }
 
     .nav-list {
         margin-block: 1em;
+
+        ul {
+            display: flex;
+            flex-direction: column;
+            gap: .7em;
+
+        }
 
         ul:first-child {
             margin-block-end: 2em;
@@ -75,25 +95,35 @@ nav {
         .upper-nav,
         .lower-nav {
             button {
+
                 width: 100%;
+            }
+
+            svg {
+                width: 25px;
+                height: 25px;
             }
         }
 
         .lower-nav li:not(:first-child) {
+            height: 25px;
             display: flex;
-
         }
 
         li[data-id] button {
             flex-grow: 4;
+
         }
 
         li[data-id] .delete-proj {
             flex-shrink: 6;
+            height: 25px;
         }
 
         .new-proj {
             padding-block: 1em;
+            width: 100%;
+
 
             form {
                 display: flex;
@@ -124,17 +154,22 @@ nav {
         display: flex;
         justify-content: space-between;
         align-items: center;
+
+        .btn-ctn {
+            display: flex;
+            gap: .5em;
+        }
     }
 }
 
 main {
-    padding-inline: max(2vw, 2em);
+    padding-inline: clamp(1rem, -9rem + 26.667vw, 15rem);
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     grid-template-rows: auto;
-    grid-template:
-        "list ."
-        "edit .";
+    grid-template-areas:
+        "list "
+        "edit ";
     height: min-content;
     gap: 3em;
     row-gap: .5em;
@@ -158,37 +193,108 @@ main {
             padding-inline: .5em;
         }
 
-        li {
+        li.list-item {
             width: 100%;
             display: grid;
-            grid-template-columns: auto auto;
+            grid-template-columns: auto min-content;
+            grid-template-rows: 1fr;
             padding-block: .5em;
+            padding-inline-end: .5em;
+            border: 1px solid rgb(194, 194, 194);
 
             .end {
-                justify-self: end;
+                display: grid;
+                grid-template-rows: min-content auto min-content;
+                grid-template-columns: auto auto;
+                grid-template-areas:
+                    " edit delete "
+                    ". ."
+                    "project-name project-name";
+
+                .edit {
+                    grid-area: edit;
+                }
+
+                .delete {
+                    grid-area: delete;
+                }
+
+                .project-name {
+                    grid-area: project-name;
+                    font-size: .8em;
+                    justify-self: center;
+                }
             }
 
-            div {
-                display: flex;
+            .start {
+                display: grid;
+                grid-template-rows: auto auto auto;
+                grid-template-columns: min-content auto;
+                grid-template-areas:
+                    "checkbox title-ctn"
+                    ". desc-ctn"
+                    ". info-ctn"
+                ;
                 align-items: center;
-                gap: 1em;
+                column-gap: .5em;
+                row-gap: .2em;
 
-                .text-ctn {
-                    display: flex;
-                    flex-direction: column;
-                    gap: .2em;
+                .checkbox {
+                    grid-area: checkbox;
+                    display: grid;
+                    place-items: start;
+                    align-self: start;
+
+                    svg {
+                        width: 30px;
+                        height: 30px;
+                    }
+                }
+
+                .title-ctn {
+                    grid-area: title-ctn;
+                    font-size: 1em;
                     align-items: start;
                 }
 
-                .title {
-                    font-weight: bold;
+                .desc-ctn {
+                    grid-area: desc-ctn;
+                    font-size: .9em;
+                    line-height: 1.2;
+                }
+
+                .info-ctn {
+                    grid-area: info-ctn;
+                    margin-block-start: .5em;
+                    font-size: .8em;
+                    display: grid;
+                    grid-template-columns: 100px 100px;
+                    color: var(--secondary);
+
+                    div {
+                        display: flex;
+                        align-items: center;
+                        gap: .1em;
+
+                        svg {
+                            fill: var(--secondary);
+                        }
+                    }
+
                 }
             }
 
 
             button {
+
                 display: grid;
                 place-items: center;
+
+                svg {
+                    width: 30px;
+                    height: 30px;
+                    fill: var(--primary);
+                }
             }
 
         }
@@ -196,17 +302,29 @@ main {
 
     .add-task {
         display: flex;
-        gap: 1em;
+        gap: .2em;
         align-items: center;
         padding-inline-start: .5em;
         padding-block-start: 1em;
-        // display: none;
+
+        button {
+            display: grid;
+            place-items: center;
+        }
+
+        #add-task-svg {
+            width: 40px;
+            height: 40px;
+            fill: var(--accent);
+        }
     }
 
     .edit-area {
-        background-color: lightgrey;
+        background-color: var(--accent);
         height: fit-content;
         padding: 1em;
+        margin-inline-start: .5em;
+        margin-block-end: 1em;
         position: relative;
         visibility: hidden;
 
@@ -214,16 +332,30 @@ main {
             display: grid;
             grid-template-columns: 2fr .5fr;
             grid-template-rows: auto auto;
+            row-gap: 1em;
 
             input,
-            select {
+            select,
+            textarea {
                 font-family: inherit;
                 font-size: inherit;
+                background-color: inherit;
+                border: 1px solid var(--background);
+
+                &:focus-within {
+                    border: 1px solid transparent;
+                    outline: 2px solid var(--text);
+                }
+
+                option {
+                    background-color: var(--background);
+                }
             }
 
             .text-ctn {
                 display: flex;
                 flex-direction: column;
+                gap: .4em;
 
                 #edit-title {
                     padding: .5em .75em;
@@ -258,6 +390,8 @@ main {
             .settings {
                 grid-column: 1 / 2;
                 align-self: end;
+                display: flex;
+                gap: 3em;
             }
 
             .add-task-btn {
@@ -271,6 +405,12 @@ main {
                 right: 0;
                 top: 0;
                 margin: .5em;
+
+                svg {
+                    width: 30px;
+                    height: 30px;
+                    fill: var(--text)
+                }
             }
         }
     }
