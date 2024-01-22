@@ -9,4 +9,4 @@
 - used factory functions and IIFEs to organize javascript
 <br>
 
-[Live Preview](https://todo-listz.netlify.app)
+[Live Preview](https://to-dolistz.netlify.app)
